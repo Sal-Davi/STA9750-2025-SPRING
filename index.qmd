@@ -1,0 +1,18 @@
+---
+title: "Salvatore Davi's Website"
+format: html
+---
+
+## Current Graduate student studying Quantitative Methods & Modeling @ Baruch College.
+
+### Throughout the semester, expect better websites to be created as my familiarity with R Studio improves. Have a great rest of your day!
+
+
+
+
+```{r}
+#| include: false
+1+1
+```
+--------------
+Last Updated: `r format(Sys.time(), "%A %m %d, %Y at %H:%M%p")`
