@@ -1,0 +1,693 @@
+---
+title: "Analysis on NYC Payroll Optimization"
+author: Salvatore Davi
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    css: |
+      body {
+        background-color: #F5F5DC;
+      }
+    code-fold: true
+    code-summary: "Show the code"
+---
+## Introduction
+This report was comissioned by the Commission to Analyze Taxpayer spending. As an incoming technical analyst, I was appointed to investigate several areas of interest that pertained to the way the city handles it's payroll bill. The following analysis seeks to uncover interesting trends that will aide city stakeholders in their decision making process on how to handle it's finances. This is followed by several recommended policies that the city wants to undertake, and a third policy underwritten by the team on how New York City can get it's spending under control.
+
+**Eric L. Adams**
+is the current New York City mayor until 2025. Below, we examine his journey from being a borough president in FY 2014 until his ascendancy to become the Mayor of New York City in 2023. His current salary as being Mayor was $258,720 in 2024. 
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| results: hide
+if(!file.exists("data/mp01/nyc_payroll_export.csv")){
+    dir.create("data/mp01", showWarnings=FALSE, recursive=TRUE)
+    
+    ENDPOINT <- "https://data.cityofnewyork.us/resource/k397-673e.json"
+    
+    if(!require("httr2")) install.packages("httr2")
+    library(httr2)
+    
+    if(!require("jsonlite")) install.packages("jsonlite")
+    library(jsonlite)
+    
+    if(!require("dplyr")) install.packages("dplyr")
+    library(dplyr)
+    
+    if(!require("readr")) install.packages("readr")
+    library(readr)
+    
+    BATCH_SIZE <- 50000
+    OFFSET     <- 0
+    END_OF_EXPORT <- FALSE
+    ALL_DATA <- list()
+    
+    while(!END_OF_EXPORT){
+        cat("Requesting items", OFFSET, "to", BATCH_SIZE + OFFSET, "\n")
+        
+        req <- request(ENDPOINT) |>
+                  req_url_query(`$limit`  = BATCH_SIZE, 
+                                `$offset` = OFFSET)
+        
+        resp <- req_perform(req)
+        
+        batch_data <- fromJSON(resp_body_string(resp))
+        
+        ALL_DATA <- c(ALL_DATA, list(batch_data))
+        
+        if(NROW(batch_data) != BATCH_SIZE){
+            END_OF_EXPORT <- TRUE
+            
+            cat("End of Data Export Reached\n")
+        } else {
+            OFFSET <- OFFSET + BATCH_SIZE
+        }
+    }
+    
+    ALL_DATA <- bind_rows(ALL_DATA)
+    
+    cat("Data export complete:", NROW(ALL_DATA), "rows and", NCOL(ALL_DATA), "columns.")
+    
+    write_csv(ALL_DATA, "data/mp01/nyc_payroll_export.csv")
+}
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| results: hide
+# NOTES TO SELF:
+# **USE |> PIPELINE**
+# **DO NOT USE THE THREE COLUMNS PROFESSOR DID NOT WANT**
+nyc_payroll <- read.csv("data/mp01/nyc_payroll_export.csv",
+                        header = TRUE,    
+                        stringsAsFactors = FALSE)  
+
+head(nyc_payroll)
+
+library(readr)
+library(dplyr)
+library(stringr)
+nyc_payroll <- read.csv("data/mp01/nyc_payroll_export.csv") %>%
+  mutate(
+    `agency_name`             = str_to_title(`agency_name`),
+    `last_name`               = str_to_title(`last_name`),
+    `first_name`              = str_to_title(`first_name`),
+    `work_location_borough` = str_to_title('work_location_borough'),
+    `title_description` = str_to_title(`title_description`),
+    `leave_status_as_of_june_30`            = str_to_title(`leave_status_as_of_june_30`)
+  )
+```
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+adams_salary <- nyc_payroll |>
+  filter(last_name == "Adams",
+         first_name == "Eric",
+         mid_init == "L") |>
+  group_by(fiscal_year) |>
+  summarize(
+    Total_Salary = sum(base_salary, na.rm = TRUE),
+    fiscal_year = first(fiscal_year),
+    title_description = first(title_description),
+    agency_name = first(agency_name),
+    .groups = "drop"
+  ) |>
+  rename(
+    `Fiscal Year` = fiscal_year,
+    `Position` = title_description,
+    `Agency` = agency_name,
+    `Total Salary` = Total_Salary
+  )
+
+# Display the table with a caption
+kable(adams_salary, caption = "Mayor Adams Salary by Fiscal Year") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+```
+
+# Quick Facts
+In this section, we will deep-dive into a few questions that the commissioners had. The following analysis of 8 issues will leverage data from [311 Open Data](https://data.cityofnewyork.us/City-Government/Citywide-Payroll-Data-Fiscal-Year-/k397-673e/about_data)
+
+
+### Which job title has the highest base rate of pay? 
+
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(scales)
+
+nyc_data <- nyc_payroll |>
+  mutate(
+    total_pay = case_when(
+      pay_basis == "per Hour" ~ (regular_hours * base_salary) + (ot_hours * (base_salary * 1.5)),
+      pay_basis == "per Day" ~ (base_salary * (regular_hours / 7.5)) + (ot_hours * ((base_salary / 7.5) * 1.5)),
+      pay_basis == "per Annum" ~ base_salary + (((base_salary) / 1950) * ot_hours),
+      pay_basis == "Prorated Annual" ~ regular_gross_paid,
+      TRUE ~ NA_real_
+    )
+  ) |>
+  mutate(
+    hourly_rate = case_when(
+      pay_basis == "per Hour" ~ base_salary,
+      pay_basis == "per Day" ~ base_salary / 7.5,
+      pay_basis == "per Annum" ~ base_salary / 2000,
+      pay_basis == "Prorated Annual" ~ base_salary / 2000,
+      TRUE ~ NA_real_
+    )
+  )
+
+# job with highest pay
+highest_salary_agg <- nyc_data |>
+  group_by(title_description) |>
+  summarize(avg_total_pay = mean(total_pay, na.rm = TRUE), .groups = "drop") |>
+  slice_max(avg_total_pay, n = 1)
+
+# slicing the top record withn their full name, pay and agency name
+highest_salary_details <- nyc_data |>
+  filter(title_description == highest_salary_agg$title_description) |>
+  slice(1) |>
+  select(first_name, mid_init, last_name, agency_name, title_description, total_pay)
+
+# Displaying the table
+kable(highest_salary_details, caption = "Job Title with the Highest Average Total Pay") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+```
+To begin our analysis, we will look into which 'job title' contains the highest base rate of pay. Marek Tyszkiewicz, with the job title 'Chief Actuary', at the office of the actuary contains the highest base pay. This is $90,973 higher than Eric L. Adam's salary.
+
+### Which individual & in what year had the single highest city total payroll?
+
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+# aggregating all of the pay columns
+payroll_data <- nyc_payroll |>
+  mutate(annual_pay = regular_gross_paid + total_ot_paid + total_other_pay)
+#empoloyee with highest pay
+highest_by_year <- payroll_data |>
+  group_by(fiscal_year) |>
+  slice_max(annual_pay, n = 1) |>
+  select(fiscal_year, title_description, agency_name, first_name, last_name, annual_pay) |>
+  ungroup()
+top_employee <- highest_by_year |>
+  slice_max(annual_pay, n = 1)
+
+# kable
+kable(top_employee, caption = "Highest Paid Employee Overall") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+
+```
+In 2024, Mark Tettonis earned $1,689,518.This is $1,430,768 more than what mayor earned in the same year.
+
+### Which individual worked the most overtime hours in this data set?
+
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+
+employee_overtime <- nyc_payroll |>
+  group_by(first_name, last_name) |>
+  summarize(
+    total_overtime = sum(ot_hours, na.rm = TRUE),  
+    job_title = first(title_description),          
+    leave_status = first(leave_status_as_of_june_30),#if they still work or not
+    .groups = "drop"
+  )
+
+# get top 3 employees
+top_employees <- employee_overtime |>
+  arrange(desc(total_overtime)) |>
+  slice(1:3)
+
+# kable
+kable(top_employees, caption = "Top 3 Employees with the Most Overtime Hours") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+
+```
+We next wanted to investigate which individuals have worked the most overtime hours. The view above produces the top 3 individuals with the most overtime hours throughout the entire dataset.  Although we could have taken the average or grouped by year, the sum was the appropiate metric here as we wanted to measure how much employees have been able to clock in the amount of overtime hours this past decade. Interestingly, Islam, Md, has been able to recieve almost 60,000 hours, and is still an active employee. That is an average of 12,058 overtime hours per year. 
+
+Overtime is a particular area of interest, as hourly wages can become more expensive than salary, leaving room for inflated wages and abuse.
+
+### Which agency has the highest average total annual payroll?
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(scales)
+
+agency_avg_gross <- nyc_payroll |>
+  # Calculate total annual gross payroll for all the employees
+  mutate(annual_gross_pay = regular_gross_paid + total_ot_paid + total_other_pay) |>
+  # Aggregate data by agency name
+  group_by(agency_name) |>
+  summarize(
+    avg_annual_gross = mean(annual_gross_pay, na.rm = TRUE),
+    total_employees = n(), #getting  count of the total employees
+    total_gross_pay = sum(annual_gross_pay, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(avg_annual_gross)) |>
+  slice(1:5)
+
+agency_avg_gross <- agency_avg_gross |>
+  mutate(
+    avg_annual_gross = dollar(avg_annual_gross),
+    total_gross_pay = dollar(total_gross_pay)
+  )
+
+kable(agency_avg_gross, 
+      caption = "Top 5 Agencies' average gross payroll") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+
+```
+The agency with the highest average total annual payroll is the Office Of Collective Bargaining. With 204 employees, they have an average gross total of $105,562.  
+
+### Which agency has the most employees on payroll in each year?
+
+```{r}
+#| results: hide
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+
+# agency count per year
+top_agency_each_year <- nyc_payroll |>
+  group_by(fiscal_year, agency_name) |>
+  summarize(num_employees = n(), .groups = "drop") |>
+  group_by(fiscal_year) |>
+  slice_max(order_by = num_employees, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  arrange(desc(fiscal_year)) 
+
+# Table
+kable(top_agency_each_year, 
+      caption = "Top Agency by Employee Count per Fiscal Year") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+#  bar graph
+ggplot(top_agency_each_year, aes(x = factor(fiscal_year), y = num_employees, fill = agency_name)) +
+  geom_bar(stat = "identity") +
+  labs(
+    title = "Top Agency by Employee Count per Fiscal Year",
+    x = "Fiscal Year",
+    y = "Number of Employees",
+    fill = "Agency"
+  ) +
+  theme_minimal()
+
+
+
+```
+The department of education contains the most amount of employees on payroll per year. The agency has topped over 100,000 employees the past decade.
+
+
+### Which agency has the highest overtime usage?
+
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(scales)
+#agency overtime usage
+agency_ot_usage_absolute <- nyc_payroll |>
+  group_by(agency_name) |>
+  summarize(
+    total_ot_hours = sum(ot_hours, na.rm = TRUE),
+    total_regular_hours = sum(regular_hours, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_ot_hours))
+
+top_agency_ot_usage <- agency_ot_usage_absolute |>
+  slice(1)
+
+kable(top_agency_ot_usage, caption = "Agency with the Highest Absolute Overtime Hours Usage:") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+
+```
+
+The agency with the highest overtime usage is the NYPD. From 2014 to 2024 they have accrued 149 million total amount of overtime hours. This indicates that there is an employee shortage and the city should continue to take steps to decrease attrition and increase hiring.
+
+ 
+### What is the average salary of employees who work outside the five boroughs? 
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(scales)
+
+# creating copy of dataframe, so that i can filter without having to alter my original dataframe and affect the other questions. (Was having issues when using the original dataframe, unsure why, gpt recommended creating a copy)
+nyc_data <- nyc_payroll
+
+temp <- nyc_data |>
+  filter(!work_location_borough %in% c("Manhattan", "Queens", "Richmond", "Brooklyn", "Bronx") &
+         !is.na(work_location_borough)) |>
+  # re-compute annual gross pay
+  mutate(gross_annual_pay = regular_gross_paid + total_ot_paid + total_other_pay) |>
+  group_by(work_location_borough) |>
+  summarize(avg_salary = mean(gross_annual_pay, na.rm = TRUE), .groups = "drop") |>
+  mutate(avg_salary = dollar(avg_salary))
+
+kable(temp |> rename(
+  "Employees outside of nyc" = work_location_borough,
+  "Average Salary" = avg_salary
+)) |>
+  kable_styling(bootstrap_options = c("striped", "hover"))
+
+
+```
+The average salary of employees who work outside of the five boroughs is $50,041.
+
+
+### How much has the city’s aggregate payroll grown over the past 10 years?
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+#Again, needed to make a copy due to compiling issues (GPT)
+nyc_data <- nyc_payroll |>
+  mutate(gross_annual_pay = regular_gross_paid + total_ot_paid + total_other_pay)
+
+#payroll
+aggregate_payroll <- nyc_data |>
+  group_by(fiscal_year) |>
+  summarize(tot_payroll = sum(gross_annual_pay, na.rm = TRUE), .groups = "drop")
+
+#Without the following scale, the chart on the y-axis would be incomprehensible due to the large values. I needed to convert it to billions. Credit: GPT
+ggplot(aggregate_payroll, aes(x = factor(fiscal_year), y = tot_payroll)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(
+    title = "NYC Payroll Growth 2014-2024",
+    x = "Fiscal Year",
+    y = "Payroll in $USD"
+  ) +
+  scale_y_continuous(labels = label_dollar(scale = 1e-9, suffix = "B")) +
+  theme_minimal()
+
+
+
+```
+Based on the bar chart, the city’s total payroll expenditures have shown a steady upward trend from 2014 through 2024. 
+
+**Key observations and insights:**
+
+
+1. The data indicates that each year’s payroll exceeds the previous year’s(exception of 2021), suggesting both a growing workforce and/or rising compensation levels.
+2. The increase from 2014 to 2024 is substantial, reflecting long-term expansion in city expenditures. 
+
+**Implications on the budget:**
+
+1. Budgetary Pressures: A rising payroll is straining the overall budget, potentially limiting funds for other projects or services.
+
+2. Resource Allocation: If payroll continues to grow at this pace, city leaders may need to evaluate staffing levels, operational efficiency, and long-term financial planning to ensure sustainability. A deep dive into some policies that we will explore for better financial sustainbility will be shown below.
+
+
+# Policy Analysis
+
+## Policy I. Salary Cap
+
+CATS is considering a policy that would ensure no subordinate employee earns more than the mayor. They have tasked us with analyzing the mayor’s total annual pay, identifying employees who exceed that amount, calculating the potential savings if these employees’ compensation were capped, and determining which job titles would be most affected by this policy.
+
+
+```{r}
+#| results: hide
+library(dplyr)
+library(stringr)
+library(knitr)
+library(kableExtra)
+
+#GPT helped re-code and debug alot of the code in this cell
+
+# getting mayor salary
+leader_sal <- nyc_payroll |>
+  filter(str_detect(title_description, "(?i)mayor") &
+         (agency_name == "Office Of The Mayor" | title_description == "Mayor")) |>
+  group_by(fiscal_year) |>
+  summarize(leader_sal = max(base_salary, na.rm = TRUE), .groups = "drop")
+
+# Find employees earning more than mayor.
+sub_excess <- nyc_payroll |>
+  filter(!(title_description == "Mayor" |
+           (agency_name == "Office Of The Mayor" & str_detect(title_description, "(?i)mayor")))) |>
+  left_join(leader_sal, by = "fiscal_year") |>
+  mutate(excess = if_else(base_salary > leader_sal, base_salary - leader_sal, 0)) |>
+  filter(excess > 0) |>
+  select(fiscal_year, agency_name, title_description, base_salary, leader_sal, excess) |>
+  arrange(desc(excess))
+
+# caluiclating total savings
+total_save <- sub_excess |>
+  summarize(total_save = sum(excess, na.rm = TRUE)) |>
+  pull(total_save)
+
+cat("Total Savings if capped at the mayor's salary:", total_save, "\n")
+
+# 4. top 10 agencies above mayor salary
+top_groups <- sub_excess |>
+  group_by(agency_name, title_description) |>
+  summarize(
+    count = n(),
+    mean_excess = mean(excess, na.rm = TRUE),
+    total_excess = sum(excess, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_excess)) |>
+  slice_head(n = 10)
+
+# kable
+kable(top_groups,
+      col.names = c("Agency", "Position", "Employee Count", "Mean Excess To Mayor Salary", "Total Excess To Mayor Salary"),
+      caption = "Top 10 Positions/Agencies Exceeding Mayor's Salary") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+#
+agency_excess <- sub_excess |>
+  group_by(agency_name) |>
+  summarize(total_excess = sum(excess, na.rm = TRUE), .groups = "drop") |>
+  arrange(desc(total_excess))
+
+#bar graph. Comparing agency and total excess
+ggplot(agency_excess, aes(x = reorder(agency_name, total_excess), y = total_excess)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +  # Makes it horizontal for better readability
+  labs(
+    title = "Total Excess to Mayor's Salary by Agency",
+    x = "Agency",
+    y = "Total Excess to Mayor's Salary"
+  ) +
+  scale_y_continuous(labels = label_dollar()) +
+  theme_minimal()
+
+
+
+```
+
+
+
+As we calculated in the beginning of the report, the mayor in 2024 made **$258,750**. At **least 66 employees** have made more than the mayor and will be impacted by capping their salaries. Before we move into recommending a cap on all salaries to the Mayor's, each position must be reviewed on a case by case basis. Although we know that we can save up $2.6 million, there are some critical city agencies such as the Comptroller, Department of Education and New York City Police Department that could have talent gutted if the suggestion is followed. 
+
+
+The first department to scrutinize is the New York City Housing Authority, which shows over half a million in total excess. This agency, responsible for affordable housing for city residents, has a history of payment abuses; notably, NYCHA Chairman Gregory Russ **resigned** after receiving a salary exceeding **$414,000** during his tenure.
+
+## Policy I. Recommendations:
+Recommendation: Adopt this policy while continuing to assess each job and agency individually, focusing on their essential functions. Additionally, it is advisable to audit the largest agencies and consult independent city employees (those not directly employed by the agency in question) to explore cost-saving measures without the immediate need to impose salary caps. Once this is completed, proceed with implementing the cap.
+
+
+## Policy II. Reducing Overtime
+The CATS comissioners have wanted to analyze the potential upside in hiring more employees to reduce the amount of overtime used. It is theorized that the city can save money on total overtime pay with increasing the amount of regular hours work by hiring new employees.
+```{r}
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(scales)
+
+# recreating the nyc_payroll salary
+nyc_payroll_with_hr <- nyc_payroll |>
+  mutate(
+    hourly_rate = case_when(
+      pay_basis == "per Annum" ~ base_salary / 2000,    
+      pay_basis == "per Hour"  ~ base_salary,           
+      pay_basis == "per Day"   ~ base_salary / 8,
+      TRUE ~ NA_real_
+    )
+  )
+
+# Overtime analysis for employees with a valid hourly_rate and >0 overtime hours
+overtime_analysis <- nyc_payroll_with_hr |>
+  filter(!is.na(hourly_rate), ot_hours > 0) |>
+  group_by(agency_name, title_description) |>
+  summarize(
+    total_ot_hours = sum(ot_hours, na.rm = TRUE),
+    total_savings = sum(ot_hours * hourly_rate * 0.5, na.rm = TRUE),
+    employees_needed = ceiling(total_ot_hours / 2000),
+    .groups = "drop"
+  ) |>
+  arrange(desc(employees_needed)) |>
+  slice_head(n = 5)
+
+# Display the overtime analysis as a neatly formatted table
+kable(overtime_analysis, 
+      caption = "Top 5 Overtime Analysis by Agency and Job Title (Unified Hourly Rate)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+
+```
+
+
+Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over **$1 Billion**. In a recent [report](https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/) by the comptroller's office, for the FY23 the city spent will reach $740 million. 
+
+## Policy II. Recommendations:
+1. Hire more NYPD officers.
+2. Bring overtime hours under control, by implementing a cap.
+
+It's hardly surprising that the top five positions and agencies with the most overtime hours are in essential roles. These mission-critical positions require careful evaluation by the city, as excessive overtime spending can deplete city resources, affect employee health, and increase the potential for fraud.
+
+
+## Policy III. Trimming Workforce & Overtime Hours
+In the following policy, we will be looking into a strategy into streamlining the cities expenditures in payroll and work towards to balance the books.
+```{r}
+
+library(dplyr)
+library(knitr)
+library(kableExtra)
+library(scales)
+library(ggplot2)
+
+# Create the unified dataset with total_pay and hourly_rate. ot hours are multiplied by .75 to signify a 25% reduction
+nyc_data <- nyc_payroll |>
+  mutate(
+    total_pay = case_when(
+      pay_basis == "per Hour" ~ (regular_hours * base_salary) + ((ot_hours * 0.75) * (base_salary * 1.5)),
+      pay_basis == "per Day" ~ (base_salary * (regular_hours / 7.5)) + ((ot_hours * 0.75) * ((base_salary / 7.5) * 1.5)),
+      pay_basis == "per Annum" ~ base_salary + (((base_salary) / 1950) * (ot_hours * 0.75)),
+      pay_basis == "Prorated Annual" ~ regular_gross_paid,
+      TRUE ~ NA_real_
+    )
+  ) |>
+  mutate(
+    hourly_rate = case_when(
+      pay_basis == "per Hour" ~ base_salary,
+      pay_basis == "per Day" ~ base_salary / 7.5,
+      pay_basis == "per Annum" ~ base_salary / 2000,
+      pay_basis == "Prorated Annual" ~ base_salary / 2000,
+      TRUE ~ NA_real_
+    )
+  )
+
+#calculating 2% reduction savings in headcount
+data_transformed <- nyc_data |>
+  group_by(agency_name, fiscal_year) |>
+  summarize(
+    total_employees = n(),
+    avg_payroll = mean(total_pay, na.rm = TRUE),
+    payroll_savings = 0.02 * (avg_payroll * total_employees),
+    .groups = "drop"
+  )
+
+# top 10 agencies
+top_agencies_reduction <- data_transformed |>
+  group_by(agency_name) |>
+  summarize(
+    total_payroll_savings = sum(payroll_savings, na.rm = TRUE),
+    avg_payroll_savings = mean(payroll_savings, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  arrange(desc(total_payroll_savings)) |>
+  slice_head(n = 10) |>
+  mutate(avg_payroll_savings = dollar(avg_payroll_savings))
+
+# Summarize annual savings
+annual_savings <- data_transformed |>
+  group_by(fiscal_year) |>
+  summarize(total_savings = sum(payroll_savings, na.rm = TRUE), .groups = "drop") |>
+  mutate(total_savings = dollar(total_savings))
+kable(top_agencies_reduction, 
+      caption = "Top 10 Agencies by Payroll Savings (2% Headcount Reduction & 25% Overtime Hours Reduction)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+
+kable(annual_savings, 
+      caption = "Annual Payroll Savings (2% Headcount & 25% Overtime Hours Reduction)") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
+#bar graph
+ggplot(top_agencies_reduction, aes(x = reorder(agency_name, total_payroll_savings), y = total_payroll_savings)) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  coord_flip() +
+  labs(
+    title = "Top 10 Agencies by Total Payroll Savings (2% Headcount & 25% Overtime Hours Reduction)",
+    x = "Agency",
+    y = "Total Payroll Savings"
+  ) +
+  scale_y_continuous(labels = label_dollar()) +
+  theme_minimal()
+
+
+```   
+
+## Policy III Recommendations:
+
+1. Reduce the Overall Workforce Count by 2%
+This measure will help streamline operations and trim excess spending on headcount, positioning the city for a more sustainable future. Over a decade this will save an average of over **$250 million.**
+
+2. Cut Overall Overtime Hours by 25%
+By significantly reducing overtime, the city can directly curb inflated labor costs while also encouraging more efficient staffing practices. This is also a push to hire more individuals for key positions to reduce the need for overtime.
+
+Although this policy may be unpopular, establishing firm spending limits is essential to stabilize and improve the city's financial health. The top 3 city agencies that will be affected the most by these savings; Education, Police & Department can all submit their own reports on where cuts can be made without having to disrupt necessary functions.
+
+# Conclusion
+This report is a deep-dive into New York City's payroll bills. From the analysis, we can see that overspending has occured through many agency departments. The city's stakeholders must throughly assess this report to engage these issues as they have only gotten progressively worse over the 2014-2024 time period.
+
+## Key Issues
+
+1. Many employees earn more than the Mayor, our highest position in the city.
+2. From 2014 to 2024, the City's payroll grew over $8 billion.
+3. Many agencies rely on overtime pay, hinting at staff shortages or avenues of abuse by certain individuals.
+4. A cost-control mechanism needs to be implemented.
+
+**External Sources:**
+1. Github Co-Pilot
+
+2. GPT (debugging) For questions 5,7,8 & Policy I.
+
+https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/
