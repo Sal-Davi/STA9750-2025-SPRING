@@ -648,7 +648,8 @@ kable(top_agencies_reduction,
 
 
 
-kable(annual_savings, 
+kable(annual_savings,
+      col.names = c("Fiscal Year", "Total Payroll Savings"),
       caption = "Annual Payroll Savings (2% Headcount & 25% Overtime Hours Reduction)") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
@@ -669,23 +670,16 @@ ggplot(top_agencies_reduction, aes(x = reorder(agency_name, total_payroll_saving
 
 ## Policy III Recommendations:
 
-1. Reduce the Overall Workforce Count by 2%
-This measure will help streamline operations and trim excess spending on headcount, positioning the city for a more sustainable future. Over a decade this will save an average of over **$250 million.**
+1. **Reduce the Overall Workforce Count by 2%.**
+This measure will help streamline operations and trim excess spending on headcount, positioning the city for a more sustainable future. This will average savings of over **$600 million** per year.
 
-2. Cut Overall Overtime Hours by 25%
+2. **Cut Overall Overtime Hours by 25%.**
 By significantly reducing overtime, the city can directly curb inflated labor costs while also encouraging more efficient staffing practices. This is also a push to hire more individuals for key positions to reduce the need for overtime.
 
-Although this policy may be unpopular, establishing firm spending limits is essential to stabilize and improve the city's financial health. The top 3 city agencies that will be affected the most by these savings; Education, Police & Department can all submit their own reports on where cuts can be made without having to disrupt necessary functions.
+Although this policy may be unpopular, establishing firm spending limits is essential to stabilize and improve the city's financial health. The top 3 city agencies that will be affected the most by these savings; Education, Police & Department can all submit their own reports on where cuts can be made without having to disrupt necessary functions. **This policy is the preferred of the three.**
 
 # Conclusion
-This report is a deep-dive into New York City's payroll bills. From the analysis, we can see that overspending has occured through many agency departments. The city's stakeholders must throughly assess this report to engage these issues as they have only gotten progressively worse over the 2014-2024 time period.
-
-## Key Takeaways
-
-1. Many employees earn more than the Mayor, our highest position in the city.
-2. From 2014 to 2024, the City's payroll grew over $8 billion.
-3. Many agencies rely on overtime pay, hinting at staff shortages or avenues of abuse by certain individuals.
-4. A cost-control mechanism needs to be implemented.
+This report is a deep-dive into New York City's payroll bills. From the analysis, we can see that overspending has occured through many agency departments. The city's stakeholders must throughly assess this report to engage these issues as they have only gotten progressively worse over the 2014-2024 time period. 
 
 
 ### References

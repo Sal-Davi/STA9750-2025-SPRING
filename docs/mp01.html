@@ -160,11 +160,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a>
   <ul class="collapse">
-  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a>
-  <ul class="collapse">
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   <li><a href="#sources" id="toc-sources" class="nav-link" data-scroll-target="#sources">Sources</a></li>
-  </ul></li>
   </ul></li>
   </ul>
 </nav>
@@ -1047,17 +1044,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(annual_savings, </span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Annual Payroll Savings (2% Headcount &amp; 25% Overtime Hours Reduction)"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(annual_savings,</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fiscal Year"</span>, <span class="st">"Total Payroll Savings"</span>),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Annual Payroll Savings (2% Headcount &amp; 25% Overtime Hours Reduction)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
 <caption>Annual Payroll Savings (2% Headcount &amp; 25% Overtime Hours Reduction)</caption>
 <thead>
 <tr class="header">
-<th style="text-align: right;" data-quarto-table-cell-role="th">fiscal_year</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">total_savings</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Fiscal Year</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Total Payroll Savings</th>
 </tr>
 </thead>
 <tbody>
@@ -1136,23 +1134,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="policy-iii-recommendations" class="level2">
 <h2 class="anchored" data-anchor-id="policy-iii-recommendations">Policy III Recommendations:</h2>
 <ol type="1">
-<li><p>Reduce the Overall Workforce Count by 2% This measure will help streamline operations and trim excess spending on headcount, positioning the city for a more sustainable future. Over a decade this will save an average of over <strong>$250 million.</strong></p></li>
-<li><p>Cut Overall Overtime Hours by 25% By significantly reducing overtime, the city can directly curb inflated labor costs while also encouraging more efficient staffing practices. This is also a push to hire more individuals for key positions to reduce the need for overtime.</p></li>
+<li><p><strong>Reduce the Overall Workforce Count by 2%.</strong> This measure will help streamline operations and trim excess spending on headcount, positioning the city for a more sustainable future. This will average savings of over <strong>$600 million</strong> per year.</p></li>
+<li><p><strong>Cut Overall Overtime Hours by 25%.</strong> By significantly reducing overtime, the city can directly curb inflated labor costs while also encouraging more efficient staffing practices. This is also a push to hire more individuals for key positions to reduce the need for overtime.</p></li>
 </ol>
-<p>Although this policy may be unpopular, establishing firm spending limits is essential to stabilize and improve the city’s financial health. The top 3 city agencies that will be affected the most by these savings; Education, Police &amp; Department can all submit their own reports on where cuts can be made without having to disrupt necessary functions.</p>
+<p>Although this policy may be unpopular, establishing firm spending limits is essential to stabilize and improve the city’s financial health. The top 3 city agencies that will be affected the most by these savings; Education, Police &amp; Department can all submit their own reports on where cuts can be made without having to disrupt necessary functions. <strong>This policy is the preferred of the three.</strong></p>
 </section>
 </section>
 <section id="conclusion" class="level1">
 <h1>Conclusion</h1>
 <p>This report is a deep-dive into New York City’s payroll bills. From the analysis, we can see that overspending has occured through many agency departments. The city’s stakeholders must throughly assess this report to engage these issues as they have only gotten progressively worse over the 2014-2024 time period.</p>
-<section id="key-takeaways" class="level2">
-<h2 class="anchored" data-anchor-id="key-takeaways">Key Takeaways</h2>
-<ol type="1">
-<li>Many employees earn more than the Mayor, our highest position in the city.</li>
-<li>From 2014 to 2024, the City’s payroll grew over $8 billion.</li>
-<li>Many agencies rely on overtime pay, hinting at staff shortages or avenues of abuse by certain individuals.</li>
-<li>A cost-control mechanism needs to be implemented.</li>
-</ol>
 <section id="references" class="level3">
 <h3 class="anchored" data-anchor-id="references">References</h3>
 <ol type="1">
@@ -1165,7 +1155,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/</p>
 
 
-</section>
 </section>
 </section>
 
