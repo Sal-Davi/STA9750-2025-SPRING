@@ -574,8 +574,11 @@ kable(overtime_analysis,
 1. Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over **$1 Billion**.
 
 Also,
+
 2. 21,679 Firemen
+
 3. 17,048 Correction Officers
+
 4. 11,550 Sanitation Workers
 
 
