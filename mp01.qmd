@@ -229,7 +229,7 @@ making_that_money <- nyc_payroll |>
   select(fiscal_year, first_name, last_name,  agency_name, title_description, ot_hours)
 
 # kable
-kable(most_OT, caption = "Employee that has the most overtime hours") |>
+kable(making_that_money, caption = "Employee that has the most overtime hours") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
 

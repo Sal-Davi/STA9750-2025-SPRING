@@ -383,57 +383,36 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(knitr)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(kableExtra)</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>employee_overtime <span class="ot">&lt;-</span> nyc_payroll <span class="sc">|&gt;</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(first_name, last_name) <span class="sc">|&gt;</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_overtime =</span> <span class="fu">sum</span>(ot_hours, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),  </span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">job_title =</span> <span class="fu">first</span>(title_description),          </span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">leave_status =</span> <span class="fu">first</span>(leave_status_as_of_june_30),<span class="co">#if they still work or not</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co"># get top 3 employees</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>top_employees <span class="ot">&lt;-</span> employee_overtime <span class="sc">|&gt;</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(total_overtime)) <span class="sc">|&gt;</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>)</span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># kable</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_employees, <span class="at">caption =</span> <span class="st">"Top 3 Employees with the Most Overtime Hours"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>making_that_money <span class="ot">&lt;-</span> nyc_payroll <span class="sc">|&gt;</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(ot_hours <span class="sc">==</span> <span class="fu">max</span>(ot_hours, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(fiscal_year, first_name, last_name,  agency_name, title_description, ot_hours)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># kable</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(making_that_money, <span class="at">caption =</span> <span class="st">"Employee that has the most overtime hours"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
-<caption>Top 3 Employees with the Most Overtime Hours</caption>
+<caption>Employee that has the most overtime hours</caption>
 <thead>
 <tr class="header">
+<th style="text-align: right;" data-quarto-table-cell-role="th">fiscal_year</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th">first_name</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th">last_name</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">total_overtime</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">job_title</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">leave_status</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">agency_name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">title_description</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">ot_hours</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td style="text-align: left;">NA</td>
-<td style="text-align: left;">NA</td>
-<td style="text-align: right;">1895914.72</td>
-<td style="text-align: left;">Rackets Investigator - Start &gt;4-24-08 No Abc</td>
-<td style="text-align: left;">Ceased</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Md</td>
-<td style="text-align: left;">Islam</td>
-<td style="text-align: right;">120584.17</td>
-<td style="text-align: left;">Special Officer</td>
-<td style="text-align: left;">Active</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Jose</td>
-<td style="text-align: left;">Rodriguez</td>
-<td style="text-align: right;">97882.12</td>
-<td style="text-align: left;">Child Welfare Specialist</td>
-<td style="text-align: left;">Ceased</td>
+<td style="text-align: right;">2022</td>
+<td style="text-align: left;">James</td>
+<td style="text-align: left;">Internicola</td>
+<td style="text-align: left;">Department Of Correction</td>
+<td style="text-align: left;">Correction Officer</td>
+<td style="text-align: right;">3692.9</td>
 </tr>
 </tbody>
 </table>
@@ -441,7 +420,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </div>
 </div>
-<p>We next wanted to investigate which individuals have worked the most overtime hours. The view above produces the top 3 individuals with the most overtime hours throughout the entire dataset. Although we could have taken the average or grouped by year, the sum was the appropiate metric here as we wanted to measure how much employees have been able to clock in the amount of overtime hours this past decade. Interestingly, Islam, Md, has been able to recieve almost 60,000 hours, and is still an active employee. That is an average of 12,058 overtime hours per year.</p>
+<p>We next wanted to investigate which individuals have worked the most overtime hours the past decade. The view above shows that James Internicola had the most amount of hours logged in a single year by any employee. At an astounding <strong>3,692 hours</strong>, and assuming a regular workday is <strong>7.5 hours</strong>, James has worked an extra 492 regular days during the fiscal year.</p>
 <p>Overtime is a particular area of interest, as hourly wages can become more expensive than salary, leaving room for inflated wages and abuse.</p>
 </section>
 <section id="which-agency-has-the-highest-average-total-annual-payroll" class="level3">
