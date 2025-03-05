@@ -575,17 +575,17 @@ kable(overtime_analysis,
 
 Also,
 
-2. 21,679 Firemen
+2. 21,679 Firemen.
 
-3. 17,048 Correction Officers
+3. 17,048 Correction Officers.
 
-4. 11,550 Sanitation Workers
+4. 11,550 Sanitation Workers.
 
 
-In a recent [report](https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/) by the comptroller's office, for the FY23 the city spent will reach $740 million. 
+In a recent [report](https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/) by the comptroller's office, for the FY23 the city will spend over **$472 million** in NYPD overtime, **$98 million** above it's budget.  
 
 ## Policy II. Recommendations:
-1. Hire more NYPD officers.
+1. Hire more NYPD officers, and for other 'critical' roles.
 2. Bring overtime hours under control, by implementing a cap.
 
 It's hardly surprising that the top five positions and agencies with the most overtime hours are in essential roles. These mission-critical positions require careful evaluation by the city, as excessive overtime spending can deplete city resources, affect employee health, and increase the potential for fraud.
