@@ -239,7 +239,7 @@ kable(making_that_money,
 
 ```
 
-We next wanted to investigate which individuals have worked the most overtime hours the past decade. The view above shows that James Internicola had the most amount of hours logged in a single year by any employee. At an astounding **3,692 hours**, and assuming a regular workday is **7.5 hours**, James has worked an extra 492 regular days during the fiscal year.
+We next wanted to investigate which individuals have worked the most overtime hours the past decade. The view above shows that James Internicola had the most amount of hours logged in a single year by any employee. At an astounding **3,692 hours**, and assuming a regular workday is **7.5 hours**, James has worked an extra **492 regular days** during the fiscal year.
 
 Overtime is a particular area of interest, as hourly wages can become more expensive than salary, leaving room for inflated wages and abuse.
 
@@ -277,7 +277,7 @@ kable(agency_avg_gross,
 
 
 ```
-The agency with the highest average total annual payroll is the Office Of Collective Bargaining. With 204 employees, they have an average gross total of $105,562.  
+The agency with the highest average total annual payroll is the Office Of Collective Bargaining. With **204 employees**, they have an average gross total of **$105,562**.  
 
 ### Which agency has the most employees on payroll in each year?
 
@@ -316,7 +316,7 @@ ggplot(top_agency_each_year, aes(x = factor(fiscal_year), y = num_employees, fil
 
 
 ```
-The department of education contains the most amount of employees on payroll per year. The agency has topped over 100,000 employees the past decade.
+The Department of Education contains the most amount of employees on payroll per year. The agency has topped over **100,000 employees** in the past decade.
 
 
 ### Which agency has the highest overtime usage?
@@ -370,14 +370,14 @@ temp <- nyc_data |>
   mutate(avg_salary = dollar(avg_salary))
 
 kable(temp |> rename(
-  "Employees outside of nyc" = work_location_borough,
+  "All Employees Outside Of NYC" = work_location_borough,
   "Average Salary" = avg_salary
 )) |>
   kable_styling(bootstrap_options = c("striped", "hover"))
 
 
 ```
-The average salary of employees who work outside of the five boroughs is $50,041.
+The average salary of employees who work outside of the five boroughs is **$50,041**.
 
 
 ### How much has the city’s aggregate payroll grown over the past 10 years?
@@ -417,7 +417,7 @@ Based on the bar chart, the city’s total payroll expenditures have shown a ste
 
 
 1. The data indicates that each year’s payroll exceeds the previous year’s(exception of 2021), suggesting both a growing workforce and/or rising compensation levels.
-2. The increase from 2014 to 2024 is substantial, reflecting long-term expansion in city expenditures. 
+2. The increase from 2014 to 2024 is substantial, reflecting a need to deep-dive into the causes of rising costs. 
 
 **Implications on the budget:**
 
@@ -517,17 +517,17 @@ ggplot(agency_excess, aes(x = reorder(agency_name, total_excess), y = total_exce
 
 
 
-As we calculated in the beginning of the report, the mayor in 2024 made **$258,750**. At **least 66 employees** have made more than the mayor and will be impacted by capping their salaries. Before we move into recommending a cap on all salaries to the Mayor's, each position must be reviewed on a case by case basis. Although we know that we can save up $2.6 million, there are some critical city agencies such as the Comptroller, Department of Education and New York City Police Department that could have talent gutted if the suggestion is followed. 
+As we calculated in the beginning of the report, the mayor in 2024 made **$258,750**. At **least 66 employees** have made more than the mayor and will be impacted by capping their salaries. Before we move into recommending a cap on all salaries to the Mayor's, each position must be reviewed on a case by case basis. Although we know that we can save up **$2.6 million**, there are some critical city agencies such as the Comptroller, Department of Education and New York City Police Department that could have talent gutted if the suggestion is followed. 
 
 
-The first department to scrutinize is the New York City Housing Authority, which shows over half a million in total excess. This agency, responsible for affordable housing for city residents, has a history of payment abuses; notably, NYCHA Chairman Gregory Russ **resigned** after receiving a salary exceeding **$414,000** during his tenure.
+The first department to scrutinize is the New York City Housing Authority, which shows over **$800 million** in total excess. This agency, responsible for affordable housing for city residents, has a history of payment abuses; notably, NYCHA Chairman Gregory Russ **resigned** last year after receiving a salary exceeding **$414,000** during his tenure.
 
 ## Policy I. Recommendations:
 Recommendation: Adopt this policy while continuing to assess each job and agency individually, focusing on their essential functions. Additionally, it is advisable to audit the largest agencies and consult independent city employees (those not directly employed by the agency in question) to explore cost-saving measures without the immediate need to impose salary caps. Once this is completed, proceed with implementing the cap.
 
 
 ## Policy II. Reducing Overtime
-The CATS comissioners have wanted to analyze the potential upside in hiring more employees to reduce the amount of overtime used. It is theorized that the city can save money on total overtime pay with increasing the amount of regular hours work by hiring new employees.
+The CATS comissioners have wanted to analyze the potential upside in hiring more employees to reduce the amount of overtime that is paid. It is theorized that the city can save money on total overtime pay with increasing the amount of regular hours work by hiring more employees.
 ```{r}
 library(dplyr)
 library(knitr)
@@ -571,7 +571,13 @@ kable(overtime_analysis,
 
 
 
-Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over **$1 Billion**.
+1. Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over **$1 Billion**.
+
+Also,
+2. 21,679 Firemen
+3. 17,048 Correction Officers
+4. 11,550 Sanitation Workers
+
 
 In a recent [report](https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/) by the comptroller's office, for the FY23 the city spent will reach $740 million. 
 

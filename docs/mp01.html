@@ -427,7 +427,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </div>
 </div>
-<p>We next wanted to investigate which individuals have worked the most overtime hours the past decade. The view above shows that James Internicola had the most amount of hours logged in a single year by any employee. At an astounding <strong>3,692 hours</strong>, and assuming a regular workday is <strong>7.5 hours</strong>, James has worked an extra 492 regular days during the fiscal year.</p>
+<p>We next wanted to investigate which individuals have worked the most overtime hours the past decade. The view above shows that James Internicola had the most amount of hours logged in a single year by any employee. At an astounding <strong>3,692 hours</strong>, and assuming a regular workday is <strong>7.5 hours</strong>, James has worked an extra <strong>492 regular days</strong> during the fiscal year.</p>
 <p>Overtime is a particular area of interest, as hourly wages can become more expensive than salary, leaving room for inflated wages and abuse.</p>
 </section>
 <section id="which-agency-has-the-highest-average-total-annual-payroll" class="level3">
@@ -513,7 +513,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </div>
 </div>
-<p>The agency with the highest average total annual payroll is the Office Of Collective Bargaining. With 204 employees, they have an average gross total of $105,562.</p>
+<p>The agency with the highest average total annual payroll is the Office Of Collective Bargaining. With <strong>204 employees</strong>, they have an average gross total of <strong>$105,562</strong>.</p>
 </section>
 <section id="which-agency-has-the-most-employees-on-payroll-in-each-year" class="level3">
 <h3 class="anchored" data-anchor-id="which-agency-has-the-most-employees-on-payroll-in-each-year">Which agency has the most employees on payroll in each year?</h3>
@@ -558,7 +558,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>The department of education contains the most amount of employees on payroll per year. The agency has topped over 100,000 employees the past decade.</p>
+<p>The Department of Education contains the most amount of employees on payroll per year. The agency has topped over <strong>100,000 employees</strong> in the past decade.</p>
 </section>
 <section id="which-agency-has-the-highest-overtime-usage" class="level3">
 <h3 class="anchored" data-anchor-id="which-agency-has-the-highest-overtime-usage">Which agency has the highest overtime usage?</h3>
@@ -634,7 +634,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_salary =</span> <span class="fu">dollar</span>(avg_salary))</span>
 <span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(temp <span class="sc">|&gt;</span> <span class="fu">rename</span>(</span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Employees outside of nyc"</span> <span class="ot">=</span> work_location_borough,</span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>  <span class="st">"All Employees Outside Of NYC"</span> <span class="ot">=</span> work_location_borough,</span>
 <span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>  <span class="st">"Average Salary"</span> <span class="ot">=</span> avg_salary</span>
 <span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>)) <span class="sc">|&gt;</span></span>
 <span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -643,7 +643,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
 <thead>
 <tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">Employees outside of nyc</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">All Employees Outside Of NYC</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th">Average Salary</th>
 </tr>
 </thead>
@@ -658,7 +658,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </div>
 </div>
-<p>The average salary of employees who work outside of the five boroughs is $50,041.</p>
+<p>The average salary of employees who work outside of the five boroughs is <strong>$50,041</strong>.</p>
 </section>
 <section id="how-much-has-the-citys-aggregate-payroll-grown-over-the-past-10-years" class="level3">
 <h3 class="anchored" data-anchor-id="how-much-has-the-citys-aggregate-payroll-grown-over-the-past-10-years">How much has the city’s aggregate payroll grown over the past 10 years?</h3>
@@ -701,7 +701,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><strong>Key observations and insights:</strong></p>
 <ol type="1">
 <li>The data indicates that each year’s payroll exceeds the previous year’s(exception of 2021), suggesting both a growing workforce and/or rising compensation levels.</li>
-<li>The increase from 2014 to 2024 is substantial, reflecting long-term expansion in city expenditures.</li>
+<li>The increase from 2014 to 2024 is substantial, reflecting a need to deep-dive into the causes of rising costs.</li>
 </ol>
 <p><strong>Implications on the budget:</strong></p>
 <ol type="1">
@@ -801,8 +801,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>As we calculated in the beginning of the report, the mayor in 2024 made <strong>$258,750</strong>. At <strong>least 66 employees</strong> have made more than the mayor and will be impacted by capping their salaries. Before we move into recommending a cap on all salaries to the Mayor’s, each position must be reviewed on a case by case basis. Although we know that we can save up $2.6 million, there are some critical city agencies such as the Comptroller, Department of Education and New York City Police Department that could have talent gutted if the suggestion is followed.</p>
-<p>The first department to scrutinize is the New York City Housing Authority, which shows over half a million in total excess. This agency, responsible for affordable housing for city residents, has a history of payment abuses; notably, NYCHA Chairman Gregory Russ <strong>resigned</strong> after receiving a salary exceeding <strong>$414,000</strong> during his tenure.</p>
+<p>As we calculated in the beginning of the report, the mayor in 2024 made <strong>$258,750</strong>. At <strong>least 66 employees</strong> have made more than the mayor and will be impacted by capping their salaries. Before we move into recommending a cap on all salaries to the Mayor’s, each position must be reviewed on a case by case basis. Although we know that we can save up <strong>$2.6 million</strong>, there are some critical city agencies such as the Comptroller, Department of Education and New York City Police Department that could have talent gutted if the suggestion is followed.</p>
+<p>The first department to scrutinize is the New York City Housing Authority, which shows over <strong>$800 million</strong> in total excess. This agency, responsible for affordable housing for city residents, has a history of payment abuses; notably, NYCHA Chairman Gregory Russ <strong>resigned</strong> last year after receiving a salary exceeding <strong>$414,000</strong> during his tenure.</p>
 </section>
 <section id="policy-i.-recommendations" class="level2">
 <h2 class="anchored" data-anchor-id="policy-i.-recommendations">Policy I. Recommendations:</h2>
@@ -810,7 +810,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="policy-ii.-reducing-overtime" class="level2">
 <h2 class="anchored" data-anchor-id="policy-ii.-reducing-overtime">Policy II. Reducing Overtime</h2>
-<p>The CATS comissioners have wanted to analyze the potential upside in hiring more employees to reduce the amount of overtime used. It is theorized that the city can save money on total overtime pay with increasing the amount of regular hours work by hiring new employees.</p>
+<p>The CATS comissioners have wanted to analyze the potential upside in hiring more employees to reduce the amount of overtime that is paid. It is theorized that the city can save money on total overtime pay with increasing the amount of regular hours work by hiring more employees.</p>
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -903,7 +903,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </div>
 </div>
-<p>Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over <strong>$1 Billion</strong>.</p>
+<ol type="1">
+<li>Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over <strong>$1 Billion</strong>.</li>
+</ol>
+<p>Also, 2. 21,679 Firemen 3. 17,048 Correction Officers 4. 11,550 Sanitation Workers</p>
 <p>In a recent <a href="https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/">report</a> by the comptroller’s office, for the FY23 the city spent will reach $740 million.</p>
 </section>
 <section id="policy-ii.-recommendations" class="level2">
