@@ -79,9 +79,6 @@ if(!file.exists("data/mp01/nyc_payroll_export.csv")){
 #| message: false
 #| warning: false
 #| results: hide
-# NOTES TO SELF:
-# **USE |> PIPELINE**
-# **DO NOT USE THE THREE COLUMNS PROFESSOR DID NOT WANT**
 nyc_payroll <- read.csv("data/mp01/nyc_payroll_export.csv",
                         header = TRUE,    
                         stringsAsFactors = FALSE)  
@@ -129,7 +126,7 @@ adams_salary <- nyc_payroll |>
     `Total Salary` = Total_Salary
   )
 
-# Display the table with a caption
+#kable
 kable(adams_salary, caption = "Mayor Adams Salary by Fiscal Year") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
@@ -154,22 +151,23 @@ library(scales)
 nyc_data <- nyc_payroll |>
   mutate(
     total_pay = case_when(
+      pay_basis == "Prorated Annual" ~ (regular_gross_paid),
       pay_basis == "per Hour" ~ (regular_hours * base_salary) + (ot_hours * (base_salary * 1.5)),
       pay_basis == "per Day" ~ (base_salary * (regular_hours / 7.5)) + (ot_hours * ((base_salary / 7.5) * 1.5)),
-      pay_basis == "per Annum" ~ base_salary + (((base_salary) / 1950) * ot_hours),
-      pay_basis == "Prorated Annual" ~ regular_gross_paid,
-      TRUE ~ NA_real_
+      pay_basis == "per Annum" ~ (base_salary + ((base_salary) / 1950) * ot_hours),
+      TRUE ~ as.numeric(NA)
     )
   ) |>
   mutate(
     hourly_rate = case_when(
-      pay_basis == "per Hour" ~ base_salary,
-      pay_basis == "per Day" ~ base_salary / 7.5,
-      pay_basis == "per Annum" ~ base_salary / 2000,
-      pay_basis == "Prorated Annual" ~ base_salary / 2000,
-      TRUE ~ NA_real_
+      pay_basis == "per Annum" ~ (base_salary / 2000),
+      pay_basis == "Prorated Annual" ~ (base_salary / 2000),
+      pay_basis == "per Hour" ~ (base_salary),
+      pay_basis == "per Day" ~ (base_salary / 7.5),
+      TRUE ~ as.numeric(NA)
     )
   )
+
 
 # job with highest pay
 highest_salary_agg <- nyc_data |>
@@ -183,7 +181,7 @@ highest_salary_details <- nyc_data |>
   slice(1) |>
   select(first_name, mid_init, last_name, agency_name, title_description, total_pay)
 
-# Displaying the table
+# kable
 kable(highest_salary_details, caption = "Job Title with the Highest Average Total Pay") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
@@ -218,35 +216,27 @@ kable(top_employee, caption = "Highest Paid Employee Overall") |>
 ```
 In 2024, Mark Tettonis earned $1,689,518.This is $1,430,768 more than what mayor earned in the same year.
 
-### Which individual worked the most overtime hours in this data set?
 
+### Which individual worked the most overtime hours in this data set?
 ```{r}
 library(dplyr)
 library(knitr)
 library(kableExtra)
 
-employee_overtime <- nyc_payroll |>
-  group_by(first_name, last_name) |>
-  summarize(
-    total_overtime = sum(ot_hours, na.rm = TRUE),  
-    job_title = first(title_description),          
-    leave_status = first(leave_status_as_of_june_30),#if they still work or not
-    .groups = "drop"
-  )
-
-# get top 3 employees
-top_employees <- employee_overtime |>
-  arrange(desc(total_overtime)) |>
-  slice(1:3)
+making_that_money <- nyc_payroll |>
+  filter(ot_hours == max(ot_hours, na.rm = TRUE)) |>
+  slice(1) |>
+  select(fiscal_year, first_name, last_name,  agency_name, title_description, ot_hours)
 
 # kable
-kable(top_employees, caption = "Top 3 Employees with the Most Overtime Hours") |>
+kable(most_OT, caption = "Employee that has the most overtime hours") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
 
 
 ```
-We next wanted to investigate which individuals have worked the most overtime hours. The view above produces the top 3 individuals with the most overtime hours throughout the entire dataset.  Although we could have taken the average or grouped by year, the sum was the appropiate metric here as we wanted to measure how much employees have been able to clock in the amount of overtime hours this past decade. Interestingly, Islam, Md, has been able to recieve almost 60,000 hours, and is still an active employee. That is an average of 12,058 overtime hours per year. 
+
+We next wanted to investigate which individuals have worked the most overtime hours the past decade. The view above shows that James Internicola had the most amount of hours logged in a single year by any employee. At an astounding **3,692 hours**, and assuming a regular workday is **7.5 hours**, James has worked an extra 492 regular days during the fiscal year.
 
 Overtime is a particular area of interest, as hourly wages can become more expensive than salary, leaving room for inflated wages and abuse.
 
@@ -551,7 +541,7 @@ nyc_payroll_with_hr <- nyc_payroll |>
     )
   )
 
-# Overtime analysis for employees with a valid hourly_rate and >0 overtime hours
+# overtime for employees with ot hrs
 overtime_analysis <- nyc_payroll_with_hr |>
   filter(!is.na(hourly_rate), ot_hours > 0) |>
   group_by(agency_name, title_description) |>
@@ -564,7 +554,7 @@ overtime_analysis <- nyc_payroll_with_hr |>
   arrange(desc(employees_needed)) |>
   slice_head(n = 5)
 
-# Display the overtime analysis as a neatly formatted table
+# kable
 kable(overtime_analysis, 
       caption = "Top 5 Overtime Analysis by Agency and Job Title (Unified Hourly Rate)") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
@@ -597,22 +587,13 @@ library(ggplot2)
 nyc_data <- nyc_payroll |>
   mutate(
     total_pay = case_when(
+      pay_basis == "Prorated Annual" ~ (regular_gross_paid),
       pay_basis == "per Hour" ~ (regular_hours * base_salary) + ((ot_hours * 0.75) * (base_salary * 1.5)),
       pay_basis == "per Day" ~ (base_salary * (regular_hours / 7.5)) + ((ot_hours * 0.75) * ((base_salary / 7.5) * 1.5)),
-      pay_basis == "per Annum" ~ base_salary + (((base_salary) / 1950) * (ot_hours * 0.75)),
-      pay_basis == "Prorated Annual" ~ regular_gross_paid,
-      TRUE ~ NA_real_
+      pay_basis == "per Annum" ~ (base_salary + ((base_salary) / 1950) * (ot_hours * 0.75)),
+      TRUE ~ as.numeric(NA)
     )
-  ) |>
-  mutate(
-    hourly_rate = case_when(
-      pay_basis == "per Hour" ~ base_salary,
-      pay_basis == "per Day" ~ base_salary / 7.5,
-      pay_basis == "per Annum" ~ base_salary / 2000,
-      pay_basis == "Prorated Annual" ~ base_salary / 2000,
-      TRUE ~ NA_real_
-    )
-  )
+  ) 
 
 #calculating 2% reduction savings in headcount
 data_transformed <- nyc_data |>
@@ -678,7 +659,7 @@ Although this policy may be unpopular, establishing firm spending limits is esse
 # Conclusion
 This report is a deep-dive into New York City's payroll bills. From the analysis, we can see that overspending has occured through many agency departments. The city's stakeholders must throughly assess this report to engage these issues as they have only gotten progressively worse over the 2014-2024 time period.
 
-## Key Issues
+## Key Takeaways
 
 1. Many employees earn more than the Mayor, our highest position in the city.
 2. From 2014 to 2024, the City's payroll grew over $8 billion.

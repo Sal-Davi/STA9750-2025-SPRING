@@ -160,7 +160,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   </ul></li>
   <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a>
   <ul class="collapse">
-  <li><a href="#key-issues" id="toc-key-issues" class="nav-link" data-scroll-target="#key-issues">Key Issues</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -841,7 +841,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Overtime analysis for employees with a valid hourly_rate and &gt;0 overtime hours</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co"># overtime for employees with ot hrs</span></span>
 <span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>overtime_analysis <span class="ot">&lt;-</span> nyc_payroll_with_hr <span class="sc">|&gt;</span></span>
 <span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="sc">!</span><span class="fu">is.na</span>(hourly_rate), ot_hours <span class="sc">&gt;</span> <span class="dv">0</span>) <span class="sc">|&gt;</span></span>
 <span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(agency_name, title_description) <span class="sc">|&gt;</span></span>
@@ -854,7 +854,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-27"><a href="#cb10-27" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(employees_needed)) <span class="sc">|&gt;</span></span>
 <span id="cb10-28"><a href="#cb10-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">5</span>)</span>
 <span id="cb10-29"><a href="#cb10-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the overtime analysis as a neatly formatted table</span></span>
+<span id="cb10-30"><a href="#cb10-30" aria-hidden="true" tabindex="-1"></a><span class="co"># kable</span></span>
 <span id="cb10-31"><a href="#cb10-31" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(overtime_analysis, </span>
 <span id="cb10-32"><a href="#cb10-32" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 5 Overtime Analysis by Agency and Job Title (Unified Hourly Rate)"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb10-33"><a href="#cb10-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -939,53 +939,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>nyc_data <span class="ot">&lt;-</span> nyc_payroll <span class="sc">|&gt;</span></span>
 <span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
 <span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_pay =</span> <span class="fu">case_when</span>(</span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Hour"</span> <span class="sc">~</span> (regular_hours <span class="sc">*</span> base_salary) <span class="sc">+</span> ((ot_hours <span class="sc">*</span> <span class="fl">0.75</span>) <span class="sc">*</span> (base_salary <span class="sc">*</span> <span class="fl">1.5</span>)),</span>
-<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Day"</span> <span class="sc">~</span> (base_salary <span class="sc">*</span> (regular_hours <span class="sc">/</span> <span class="fl">7.5</span>)) <span class="sc">+</span> ((ot_hours <span class="sc">*</span> <span class="fl">0.75</span>) <span class="sc">*</span> ((base_salary <span class="sc">/</span> <span class="fl">7.5</span>) <span class="sc">*</span> <span class="fl">1.5</span>)),</span>
-<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Annum"</span> <span class="sc">~</span> base_salary <span class="sc">+</span> (((base_salary) <span class="sc">/</span> <span class="dv">1950</span>) <span class="sc">*</span> (ot_hours <span class="sc">*</span> <span class="fl">0.75</span>)),</span>
-<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"Prorated Annual"</span> <span class="sc">~</span> regular_gross_paid,</span>
-<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"Prorated Annual"</span> <span class="sc">~</span> (regular_gross_paid),</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Hour"</span> <span class="sc">~</span> (regular_hours <span class="sc">*</span> base_salary) <span class="sc">+</span> ((ot_hours <span class="sc">*</span> <span class="fl">0.75</span>) <span class="sc">*</span> (base_salary <span class="sc">*</span> <span class="fl">1.5</span>)),</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Day"</span> <span class="sc">~</span> (base_salary <span class="sc">*</span> (regular_hours <span class="sc">/</span> <span class="fl">7.5</span>)) <span class="sc">+</span> ((ot_hours <span class="sc">*</span> <span class="fl">0.75</span>) <span class="sc">*</span> ((base_salary <span class="sc">/</span> <span class="fl">7.5</span>) <span class="sc">*</span> <span class="fl">1.5</span>)),</span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Annum"</span> <span class="sc">~</span> (base_salary <span class="sc">+</span> ((base_salary) <span class="sc">/</span> <span class="dv">1950</span>) <span class="sc">*</span> (ot_hours <span class="sc">*</span> <span class="fl">0.75</span>)),</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="fu">as.numeric</span>(<span class="cn">NA</span>)</span>
 <span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>    <span class="at">hourly_rate =</span> <span class="fu">case_when</span>(</span>
-<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Hour"</span> <span class="sc">~</span> base_salary,</span>
-<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Day"</span> <span class="sc">~</span> base_salary <span class="sc">/</span> <span class="fl">7.5</span>,</span>
-<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"per Annum"</span> <span class="sc">~</span> base_salary <span class="sc">/</span> <span class="dv">2000</span>,</span>
-<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>      pay_basis <span class="sc">==</span> <span class="st">"Prorated Annual"</span> <span class="sc">~</span> base_salary <span class="sc">/</span> <span class="dv">2000</span>,</span>
-<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>      <span class="cn">TRUE</span> <span class="sc">~</span> <span class="cn">NA_real_</span></span>
-<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a><span class="co">#calculating 2% reduction savings in headcount</span></span>
-<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a>data_transformed <span class="ot">&lt;-</span> nyc_data <span class="sc">|&gt;</span></span>
-<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(agency_name, fiscal_year) <span class="sc">|&gt;</span></span>
-<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_employees =</span> <span class="fu">n</span>(),</span>
-<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_payroll =</span> <span class="fu">mean</span>(total_pay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">payroll_savings =</span> <span class="fl">0.02</span> <span class="sc">*</span> (avg_payroll <span class="sc">*</span> total_employees),</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>  ) </span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a><span class="co">#calculating 2% reduction savings in headcount</span></span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a>data_transformed <span class="ot">&lt;-</span> nyc_data <span class="sc">|&gt;</span></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(agency_name, fiscal_year) <span class="sc">|&gt;</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_employees =</span> <span class="fu">n</span>(),</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_payroll =</span> <span class="fu">mean</span>(total_pay, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">payroll_savings =</span> <span class="fl">0.02</span> <span class="sc">*</span> (avg_payroll <span class="sc">*</span> total_employees),</span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="co"># top 10 agencies</span></span>
+<span id="cb11-30"><a href="#cb11-30" aria-hidden="true" tabindex="-1"></a>top_agencies_reduction <span class="ot">&lt;-</span> data_transformed <span class="sc">|&gt;</span></span>
+<span id="cb11-31"><a href="#cb11-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(agency_name) <span class="sc">|&gt;</span></span>
+<span id="cb11-32"><a href="#cb11-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb11-33"><a href="#cb11-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_payroll_savings =</span> <span class="fu">sum</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-34"><a href="#cb11-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_payroll_savings =</span> <span class="fu">mean</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb11-35"><a href="#cb11-35" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a><span class="co"># top 10 agencies</span></span>
-<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>top_agencies_reduction <span class="ot">&lt;-</span> data_transformed <span class="sc">|&gt;</span></span>
-<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(agency_name) <span class="sc">|&gt;</span></span>
-<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_payroll_savings =</span> <span class="fu">sum</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">avg_payroll_savings =</span> <span class="fu">mean</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(total_payroll_savings)) <span class="sc">|&gt;</span></span>
-<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_payroll_savings =</span> <span class="fu">dollar</span>(avg_payroll_savings))</span>
-<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize annual savings</span></span>
-<span id="cb11-51"><a href="#cb11-51" aria-hidden="true" tabindex="-1"></a>annual_savings <span class="ot">&lt;-</span> data_transformed <span class="sc">|&gt;</span></span>
-<span id="cb11-52"><a href="#cb11-52" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(fiscal_year) <span class="sc">|&gt;</span></span>
-<span id="cb11-53"><a href="#cb11-53" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_savings =</span> <span class="fu">sum</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-54"><a href="#cb11-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_savings =</span> <span class="fu">dollar</span>(total_savings))</span>
-<span id="cb11-55"><a href="#cb11-55" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_agencies_reduction, </span>
-<span id="cb11-56"><a href="#cb11-56" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 10 Agencies by Payroll Savings (2% Headcount Reduction &amp; 25% Overtime Hours Reduction)"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-57"><a href="#cb11-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-36"><a href="#cb11-36" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb11-37"><a href="#cb11-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(total_payroll_savings)) <span class="sc">|&gt;</span></span>
+<span id="cb11-38"><a href="#cb11-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">10</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-39"><a href="#cb11-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">avg_payroll_savings =</span> <span class="fu">dollar</span>(avg_payroll_savings))</span>
+<span id="cb11-40"><a href="#cb11-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-41"><a href="#cb11-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Summarize annual savings</span></span>
+<span id="cb11-42"><a href="#cb11-42" aria-hidden="true" tabindex="-1"></a>annual_savings <span class="ot">&lt;-</span> data_transformed <span class="sc">|&gt;</span></span>
+<span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(fiscal_year) <span class="sc">|&gt;</span></span>
+<span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_savings =</span> <span class="fu">sum</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_savings =</span> <span class="fu">dollar</span>(total_savings))</span>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_agencies_reduction, </span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 10 Agencies by Payroll Savings (2% Headcount Reduction &amp; 25% Overtime Hours Reduction)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
@@ -1153,8 +1144,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="conclusion" class="level1">
 <h1>Conclusion</h1>
 <p>This report is a deep-dive into New York City’s payroll bills. From the analysis, we can see that overspending has occured through many agency departments. The city’s stakeholders must throughly assess this report to engage these issues as they have only gotten progressively worse over the 2014-2024 time period.</p>
-<section id="key-issues" class="level2">
-<h2 class="anchored" data-anchor-id="key-issues">Key Issues</h2>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">Key Takeaways</h2>
 <ol type="1">
 <li>Many employees earn more than the Mayor, our highest position in the city.</li>
 <li>From 2014 to 2024, the City’s payroll grew over $8 billion.</li>
