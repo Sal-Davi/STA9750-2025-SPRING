@@ -298,12 +298,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <caption>Job Title with the Highest Average Total Pay</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">first_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">mid_init</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">last_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">agency_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">title_description</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">total_pay</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">First Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Middle Initial</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Last Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Agency Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Title Description</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Total Pay</th>
 </tr>
 </thead>
 <tbody>
@@ -344,21 +344,22 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>top_employee <span class="ot">&lt;-</span> highest_by_year <span class="sc">|&gt;</span></span>
 <span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(annual_pay, <span class="at">n =</span> <span class="dv">1</span>)</span>
 <span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="co"># kable</span></span>
-<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_employee, <span class="at">caption =</span> <span class="st">"Highest Paid Employee Overall"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_employee,</span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fiscal Year"</span>, <span class="st">"Title Description"</span>, <span class="st">"Agency Name"</span>, <span class="st">"First Name"</span>, <span class="st">"Last Name"</span>, <span class="st">"Annual Pay"</span>),</span>
+<span id="cb1-19"><a href="#cb1-19" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Highest Paid Employee Overall"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb1-20"><a href="#cb1-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
 <caption>Highest Paid Employee Overall</caption>
 <thead>
 <tr class="header">
-<th style="text-align: right;" data-quarto-table-cell-role="th">fiscal_year</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">title_description</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">agency_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">first_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">last_name</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">annual_pay</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Fiscal Year</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Title Description</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Agency Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">First Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Last Name</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Annual Pay</th>
 </tr>
 </thead>
 <tbody>
@@ -392,21 +393,23 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice</span>(<span class="dv">1</span>) <span class="sc">|&gt;</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(fiscal_year, first_name, last_name,  agency_name, title_description, ot_hours)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># kable</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(making_that_money, <span class="at">caption =</span> <span class="st">"Employee that has the most overtime hours"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(making_that_money,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Fiscal Year"</span>, <span class="st">"First Name"</span>, <span class="st">"Last Name"</span>, <span class="st">"Agency Name"</span>, <span class="st">"Title Description"</span>, <span class="st">"Overtime Hours"</span>),</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Employee With Most Overtime Worked"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
-<caption>Employee that has the most overtime hours</caption>
+<caption>Employee With Most Overtime Worked</caption>
 <thead>
 <tr class="header">
-<th style="text-align: right;" data-quarto-table-cell-role="th">fiscal_year</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">first_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">last_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">agency_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">title_description</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">ot_hours</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Fiscal Year</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">First Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Last Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Agency Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Title Description</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Overtime Hours</th>
 </tr>
 </thead>
 <tbody>
@@ -457,19 +460,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_gross_pay =</span> <span class="fu">dollar</span>(total_gross_pay)</span>
 <span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  )</span>
 <span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(agency_avg_gross, </span>
-<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 5 Agencies' average gross payroll"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(agency_avg_gross,</span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Agency Name"</span>, <span class="st">"Average Annual Gross"</span>, <span class="st">"Total Employees"</span>, <span class="st">"Total Gross Pay"</span>),</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 5 Agencies' average gross payroll"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
 <caption>Top 5 Agencies' average gross payroll</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">agency_name</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">avg_annual_gross</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">total_employees</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">total_gross_pay</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Agency Name</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Annual Gross</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Total Employees</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Total Gross Pay</th>
 </tr>
 </thead>
 <tbody>
@@ -961,18 +965,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-43"><a href="#cb11-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(fiscal_year) <span class="sc">|&gt;</span></span>
 <span id="cb11-44"><a href="#cb11-44" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(<span class="at">total_savings =</span> <span class="fu">sum</span>(payroll_savings, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb11-45"><a href="#cb11-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">total_savings =</span> <span class="fu">dollar</span>(total_savings))</span>
-<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_agencies_reduction, </span>
-<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 10 Agencies by Payroll Savings (2% Headcount Reduction &amp; 25% Overtime Hours Reduction)"</span>) <span class="sc">|&gt;</span></span>
-<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-46"><a href="#cb11-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-47"><a href="#cb11-47" aria-hidden="true" tabindex="-1"></a><span class="fu">kable</span>(top_agencies_reduction,</span>
+<span id="cb11-48"><a href="#cb11-48" aria-hidden="true" tabindex="-1"></a>      <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Agency Name"</span>, <span class="st">"Total Payroll Savings"</span>, <span class="st">"Average Payroll Savings"</span>),</span>
+<span id="cb11-49"><a href="#cb11-49" aria-hidden="true" tabindex="-1"></a>      <span class="at">caption =</span> <span class="st">"Top 10 Agencies by Payroll Savings (2% Headcount Reduction &amp; 25% Overtime Hours Reduction)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb11-50"><a href="#cb11-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">kable_styling</span>(<span class="at">bootstrap_options =</span> <span class="fu">c</span>(<span class="st">"striped"</span>, <span class="st">"hover"</span>), <span class="at">full_width =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <table class="table table-striped table-hover caption-top table-sm small" data-quarto-postprocess="true">
 <caption>Top 10 Agencies by Payroll Savings (2% Headcount Reduction &amp; 25% Overtime Hours Reduction)</caption>
 <thead>
 <tr class="header">
-<th style="text-align: left;" data-quarto-table-cell-role="th">agency_name</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">total_payroll_savings</th>
-<th style="text-align: left;" data-quarto-table-cell-role="th">avg_payroll_savings</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Agency Name</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Total Payroll Savings</th>
+<th style="text-align: left;" data-quarto-table-cell-role="th">Average Payroll Savings</th>
 </tr>
 </thead>
 <tbody>

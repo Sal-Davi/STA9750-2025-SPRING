@@ -181,9 +181,12 @@ highest_salary_details <- nyc_data |>
   slice(1) |>
   select(first_name, mid_init, last_name, agency_name, title_description, total_pay)
 
-# kable
-kable(highest_salary_details, caption = "Job Title with the Highest Average Total Pay") |>
+
+kable(highest_salary_details,
+      col.names = c("First Name", "Middle Initial", "Last Name", "Agency Name", "Title Description", "Total Pay"),
+      caption = "Job Title with the Highest Average Total Pay") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
 
 ```
 To begin our analysis, we will look into which 'job title' contains the highest base rate of pay. **Marek Tyszkiewicz**, with the job title **'Chief Actuary'**, at the office of the actuary contains the highest base pay. This is **$90,973 higher** than Eric L. Adam's salary.
@@ -207,11 +210,10 @@ highest_by_year <- payroll_data |>
 top_employee <- highest_by_year |>
   slice_max(annual_pay, n = 1)
 
-# kable
-kable(top_employee, caption = "Highest Paid Employee Overall") |>
+kable(top_employee,
+      col.names = c("Fiscal Year", "Title Description", "Agency Name", "First Name", "Last Name", "Annual Pay"),
+      caption = "Highest Paid Employee Overall") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-
-
 
 ```
 In 2024, **Mark Tettonis** earned **$1,689,518**.This is **$1,430,768** more than what the mayor earned in the same year.
@@ -228,10 +230,11 @@ making_that_money <- nyc_payroll |>
   slice(1) |>
   select(fiscal_year, first_name, last_name,  agency_name, title_description, ot_hours)
 
-# kable
-kable(making_that_money, caption = "Employee that has the most overtime hours") |>
-  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
+kable(making_that_money,
+      col.names = c("Fiscal Year", "First Name", "Last Name", "Agency Name", "Title Description", "Overtime Hours"),
+      caption = "Employee With Most Overtime Worked") |>
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
 
 ```
@@ -267,10 +270,10 @@ agency_avg_gross <- agency_avg_gross |>
     total_gross_pay = dollar(total_gross_pay)
   )
 
-kable(agency_avg_gross, 
+kable(agency_avg_gross,
+      col.names = c("Agency Name", "Average Annual Gross", "Total Employees", "Total Gross Pay"),
       caption = "Top 5 Agencies' average gross payroll") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-
 
 
 ```
@@ -628,9 +631,12 @@ annual_savings <- data_transformed |>
   group_by(fiscal_year) |>
   summarize(total_savings = sum(payroll_savings, na.rm = TRUE), .groups = "drop") |>
   mutate(total_savings = dollar(total_savings))
-kable(top_agencies_reduction, 
+
+kable(top_agencies_reduction,
+      col.names = c("Agency Name", "Total Payroll Savings", "Average Payroll Savings"),
       caption = "Top 10 Agencies by Payroll Savings (2% Headcount Reduction & 25% Overtime Hours Reduction)") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
 
 
 kable(annual_savings, 
