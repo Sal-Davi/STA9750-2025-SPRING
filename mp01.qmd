@@ -16,7 +16,7 @@ format:
 This report was comissioned by the Commission to Analyze Taxpayer spending. As an incoming technical analyst, I was appointed to investigate several areas of interest that pertained to the way the city handles it's payroll bill. The following analysis seeks to uncover interesting trends that will aide city stakeholders in their decision making process on how to handle it's finances. This is followed by several recommended policies that the city wants to undertake, and a third policy underwritten by the team on how New York City can get it's spending under control.
 
 **Eric L. Adams**
-is the current New York City mayor until 2025. Below, we examine his journey from being a borough president in FY 2014 until his ascendancy to become the Mayor of New York City in 2023. His current salary as being Mayor was $258,720 in 2024. 
+is the current New York City mayor until 2025. Below, we examine his journey from being a borough president in FY 2014 until his ascendancy to become the Mayor of New York City in 2023. His current salary for being Mayor was $258,720 in 2024. 
 ```{r}
 #| echo: false
 #| message: false
@@ -134,7 +134,7 @@ kable(adams_salary, caption = "Mayor Adams Salary by Fiscal Year") |>
 ```
 
 # Quick Facts
-In this section, we will deep-dive into a few questions that the commissioners had. The following analysis of 8 issues will leverage data from [311 Open Data](https://data.cityofnewyork.us/City-Government/Citywide-Payroll-Data-Fiscal-Year-/k397-673e/about_data)
+In this section, we will deep-dive into a few questions that the commissioners had. The following analysis of 8 issues will leverage data from [311 Open Data](https://data.cityofnewyork.us/City-Government/Citywide-Payroll-Data-Fiscal-Year-/k397-673e/about_data). 
 
 
 ### Which job title has the highest base rate of pay? 
@@ -186,7 +186,7 @@ kable(highest_salary_details, caption = "Job Title with the Highest Average Tota
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
 
 ```
-To begin our analysis, we will look into which 'job title' contains the highest base rate of pay. Marek Tyszkiewicz, with the job title 'Chief Actuary', at the office of the actuary contains the highest base pay. This is $90,973 higher than Eric L. Adam's salary.
+To begin our analysis, we will look into which 'job title' contains the highest base rate of pay. **Marek Tyszkiewicz**, with the job title **'Chief Actuary'**, at the office of the actuary contains the highest base pay. This is **$90,973 higher** than Eric L. Adam's salary.
 
 ### Which individual & in what year had the single highest city total payroll?
 
@@ -214,7 +214,7 @@ kable(top_employee, caption = "Highest Paid Employee Overall") |>
 
 
 ```
-In 2024, Mark Tettonis earned $1,689,518.This is $1,430,768 more than what mayor earned in the same year.
+In 2024, **Mark Tettonis** earned **$1,689,518**.This is **$1,430,768** more than what the mayor earned in the same year.
 
 
 ### Which individual worked the most overtime hours in this data set?
@@ -336,14 +336,15 @@ agency_ot_usage_absolute <- nyc_payroll |>
 top_agency_ot_usage <- agency_ot_usage_absolute |>
   slice(1)
 
-kable(top_agency_ot_usage, caption = "Agency with the Highest Absolute Overtime Hours Usage:") |>
+kable(top_agency_ot_usage,
+      col.names = c("Agency Name", "Total Overtime Hours", "Total Regular Hours"),
+      caption = "Agency with the Highest Absolute Overtime Hours Usage") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
-
 
 
 ```
 
-The agency with the highest overtime usage is the NYPD. From 2014 to 2024 they have accrued 149 million total amount of overtime hours. This indicates that there is an employee shortage and the city should continue to take steps to decrease attrition and increase hiring.
+The agency with the highest overtime usage is the NYPD. From 2014 to 2024 they have accrued **149 million** total amount of overtime hours. This indicates that there is an employee shortage and the city should continue to take steps to decrease attrition and increase hiring.
 
  
 ### What is the average salary of employees who work outside the five boroughs? 
@@ -393,7 +394,7 @@ aggregate_payroll <- nyc_data |>
   group_by(fiscal_year) |>
   summarize(tot_payroll = sum(gross_annual_pay, na.rm = TRUE), .groups = "drop")
 
-#Without the following scale, the chart on the y-axis would be incomprehensible due to the large values. I needed to convert it to billions. Credit: GPT
+#Without the following scale, the chart on the y-axis would be incomprehensible due to the large values. I needed to convert it to billions. 
 ggplot(aggregate_payroll, aes(x = factor(fiscal_year), y = tot_payroll)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   labs(
@@ -417,9 +418,9 @@ Based on the bar chart, the city’s total payroll expenditures have shown a ste
 
 **Implications on the budget:**
 
-1. Budgetary Pressures: A rising payroll is straining the overall budget, potentially limiting funds for other projects or services.
+1. **Budgetary Pressures**: A rising payroll is straining the overall budget, potentially limiting funds for other projects or services.
 
-2. Resource Allocation: If payroll continues to grow at this pace, city leaders may need to evaluate staffing levels, operational efficiency, and long-term financial planning to ensure sustainability. A deep dive into some policies that we will explore for better financial sustainbility will be shown below.
+2. **Resource Allocation**: If payroll continues to grow at this pace, city leaders may need to evaluate staffing levels, operational efficiency, and long-term financial planning to ensure sustainability. A deep dive into some policies that we will explore for better financial sustainbility will be shown below.
 
 
 # Policy Analysis
@@ -555,16 +556,21 @@ overtime_analysis <- nyc_payroll_with_hr |>
   slice_head(n = 5)
 
 # kable
-kable(overtime_analysis, 
-      caption = "Top 5 Overtime Analysis by Agency and Job Title (Unified Hourly Rate)") |>
+kable(overtime_analysis,
+      col.names = c("Agency Name", "Title Description", "Total Overtime Hours", "Total Savings", "Employees Needed"),
+      caption = "Top 5 Overtime Analysis by Agency and Job Title") |>
   kable_styling(bootstrap_options = c("striped", "hover"), full_width = FALSE)
+
 
 
 
 ```
 
 
-Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over **$1 Billion**. In a recent [report](https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/) by the comptroller's office, for the FY23 the city spent will reach $740 million. 
+
+Over 31,000 NYPD officers are needed to make up for the overtime hours that have been earned over the last 10 years. By hiring them, the city would be able to save over **$1 Billion**.
+
+In a recent [report](https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/) by the comptroller's office, for the FY23 the city spent will reach $740 million. 
 
 ## Policy II. Recommendations:
 1. Hire more NYPD officers.
@@ -666,9 +672,11 @@ This report is a deep-dive into New York City's payroll bills. From the analysis
 3. Many agencies rely on overtime pay, hinting at staff shortages or avenues of abuse by certain individuals.
 4. A cost-control mechanism needs to be implemented.
 
-**External Sources:**
+
+### References
 1. Github Co-Pilot
 
-2. GPT (debugging) For questions 5,7,8 & Policy I.
+2. GPT (debugging) For questions 7,8 & Policy I.
 
+### Sources
 https://comptroller.nyc.gov/newsroom/nypd-overspending-on-overtime-grew-dramatically-in-recent-years/
