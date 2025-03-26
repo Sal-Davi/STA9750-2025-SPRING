@@ -931,8 +931,7 @@ Greenhouse Gas Emissions from a Typical Passenger Vehicle | US EPA. (2024, Augus
 
 Smoothed density estimates — geom_density. (n.d.). [https://ggplot2.tidyverse.org/reference/geom_density.html](https://ggplot2.tidyverse.org/reference/geom_density.html)
 
-2023 Fuel and energy. (n.d.). [FTA](https://www.transit.dot.gov/ntd/data-product/2023-fuel-and-energy)
-rgy)
+2023 Fuel and energy. (n.d.). [https://www.transit.dot.gov/ntd/data-product/2023-fuel-and-energy](https://www.transit.dot.gov/ntd/data-product/2023-fuel-and-energy)
 
 
 
