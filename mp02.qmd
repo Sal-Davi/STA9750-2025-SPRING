@@ -925,9 +925,18 @@ dirtiest_small <- agency_dirtiness |>
   slice_head(n = 1)
 
 kable(
-  dirtiest_small,
+  dirtiest_small |>
+    rename(
+      "Agency" = agency,
+      "State" = state,
+      "Agency Size" = size,
+      "Total Diesel Consumed" = total_diesel,
+      "Total Passenger Trips" = total_upt,
+      "Dirty Score" = dirtiness
+    ),
   caption = "Dirtiest Transit Agency: Small Agencies",
-  align = "c"
+  align = "c",
+  format.args = list(big.mark = ",")
 )
 
 # Medium Agencies
@@ -937,11 +946,19 @@ dirtiest_medium <- agency_dirtiness |>
   slice_head(n = 1)
 
 kable(
-  dirtiest_medium,
+  dirtiest_medium |>
+    rename(
+      "Agency" = agency,
+      "State" = state,
+      "Agency Size" = size,
+      "Total Diesel Consumed" = total_diesel,
+      "Total Passenger Trips" = total_upt,
+      "Dirty Score" = dirtiness
+    ),
   caption = "Dirtiest Transit Agency: Medium Agencies",
-  align = "c"
+  align = "c",
+  format.args = list(big.mark = ",")
 )
-
 
 # Large Agencies
 dirtiest_large <- agency_dirtiness |>
@@ -950,9 +967,18 @@ dirtiest_large <- agency_dirtiness |>
   slice_head(n = 1)
 
 kable(
-  dirtiest_large,
+  dirtiest_large |>
+    rename(
+      "Agency" = agency,
+      "State" = state,
+      "Agency Size" = size,
+      "Total Diesel Consumed" = total_diesel,
+      "Total Passenger Trips" = total_upt,
+      "Dirty Score" = dirtiness
+    ),
   caption = "Dirtiest Transit Agency: Large Agencies",
-  align = "c"
+  align = "c",
+  format.args = list(big.mark = ",")
 )
 
 ```
