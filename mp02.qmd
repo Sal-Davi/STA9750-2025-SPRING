@@ -653,9 +653,9 @@ greenest_large <- agencies  |>
   filter(green_score == min(green_score)) |>
   select(agency, state, city, miles, primary_source, emissions_per_mile, green_score, size)
 
-kable(greenest_small, caption = "Greenest Small Transit Agency", align = "c")
-kable(greenest_medium, caption = "Greenest Medium Transit Agency", align = "c")
-kable(greenest_large, caption = "Greenest Large Transit Agency", align = "c")
+kable(greenest_small, caption = "Greenest Small Transit Agency", align = "c", format.args = list(big.mark = ","))
+kable(greenest_medium, caption = "Greenest Medium Transit Agency", align = "c", format.args = list(big.mark = ","))
+kable(greenest_large, caption = "Greenest Large Transit Agency", align = "c", format.args = list(big.mark = ","))
 
 ```
 
@@ -905,108 +905,55 @@ kable(
 
 ### The Earth Destroyers
 ```{r}
-# Ssummarizing electric
-agency_electrification <- agencies  |>
+# Summarize diesel usage and UPT
+agency_dirtiness <- agencies  |>
   group_by(agency, state, size) |>
   summarise(
-    total_electric = sum(electric_battery) + sum(electric_propulsion),
-    total_fuel = sum(biodiesel) + sum(cnaturalgas) + sum(diesel) + sum(gasoline) +
-                 sum(liqnatgas) + sum(liqpetgas) + sum(electric_battery) + sum(electric_propulsion),
-    total_miles = sum(miles)
+    total_diesel = sum(diesel),
+    total_upt = sum(upt)
   ) |>
   mutate(
-    pct_electric = (total_electric / total_fuel) * 100
+    # Dirtiness score: higher means more diesel usage per UPT.
+    dirtiness = total_diesel / total_upt
   ) |>
   ungroup()
 
-# For Small Agencies: sort by pct_electric and total_miles, then take the top one.
-electrified_small <- agency_electrification |>
+# Small Agencies
+dirtiest_small <- agency_dirtiness |>
   filter(size == "Small") |>
-  arrange(desc(pct_electric), desc(total_miles)) |>
+  arrange(desc(dirtiness)) |>
   slice_head(n = 1)
 
-electrified_small_formatted <- electrified_small |>
-  mutate(
-    total_electric = comma(total_electric),
-    total_fuel = comma(total_fuel),
-    total_miles = comma(total_miles),
-    pct_electric = comma(pct_electric)
-  ) |>
-  rename(
-    "Agency" = agency,
-    "State" = state,
-    "Size" = size,
-    "Total Electricity" = total_electric,
-    "All fuel sources" = total_fuel,
-    "Total Miles" = total_miles,
-    "How much of fuel is electric" = pct_electric
-  )
-
 kable(
-  electrified_small_formatted,
-  caption = "Agency with Highest Electrification – Small Agencies",
+  dirtiest_small,
+  caption = "Dirtiest Transit Agency: Small Agencies",
   align = "c"
 )
 
-# For Medium Agencies
-electrified_medium <- agency_electrification |>
+# Medium Agencies
+dirtiest_medium <- agency_dirtiness |>
   filter(size == "Medium") |>
-  arrange(desc(pct_electric), desc(total_miles)) |>
+  arrange(desc(dirtiness)) |>
   slice_head(n = 1)
 
-electrified_medium_formatted <- electrified_medium |>
-  mutate(
-    total_electric = comma(total_electric),
-    total_fuel = comma(total_fuel),
-    total_miles = comma(total_miles),
-    pct_electric = comma(pct_electric)
-  ) |>
-  rename(
-    "Agency" = agency,
-    "State" = state,
-    "Size" = size,
-    "Total Electricity" = total_electric,
-    "All fuel sources" = total_fuel,
-    "Total Miles" = total_miles,
-    "How much of fuel is electric" = pct_electric
-  )
-
 kable(
-  electrified_medium_formatted,
-  caption = "Agency with Highest Electrification – Medium Agencies",
+  dirtiest_medium,
+  caption = "Dirtiest Transit Agency: Medium Agencies",
   align = "c"
 )
 
-# For Large Agencies
-electrified_large <- agency_electrification |>
+
+# Large Agencies
+dirtiest_large <- agency_dirtiness |>
   filter(size == "Large") |>
-  arrange(desc(pct_electric), desc(total_miles)) |>
+  arrange(desc(dirtiness)) |>
   slice_head(n = 1)
 
-electrified_large_formatted <- electrified_large |>
-  mutate(
-    total_electric = comma(total_electric),
-    total_fuel = comma(total_fuel),
-    total_miles = comma(total_miles),
-    pct_electric = comma(pct_electric)
-  ) |>
-  rename(
-    "Agency" = agency,
-    "State" = state,
-    "Size" = size,
-    "Total Electricity" = total_electric,
-    "All fuel sources" = total_fuel,
-    "Total Miles" = total_miles,
-    "How much of fuel is electric" = pct_electric
-  )
-
 kable(
-  electrified_large_formatted,
-  caption = "Agency with Highest Electrification – Large Agencies",
+  dirtiest_large,
+  caption = "Dirtiest Transit Agency: Large Agencies",
   align = "c"
 )
-
-
 
 ```
 
