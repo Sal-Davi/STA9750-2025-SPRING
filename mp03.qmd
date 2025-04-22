@@ -1,0 +1,433 @@
+---
+title: "The Ultimate Playlist"
+author: "Salvatore Davi"
+format:
+  html:
+    code-fold: true
+    code-fold-summary: "Show code"
+    code-unfold-summary: "Hide code"
+    code-fold-all: true
+---
+
+
+
+# Introduction
+
+In this project, we harness Spotify’s rich dataset to answer a simple but compelling question: what makes a song not just good, but universally loved? By tapping into two distinct data exports, one detailing track popularity metrics and another cataloguing song attributes (tempo, key, danceability, and energy)—we can move beyond subjective taste and build an evidence‑backed “ultimate playlist.”
+
+This project is also insipired by the "All Rise" playlist, by Mr Barney Stinson, as the Ultimate Playtlist helps define a great aggregation of music into a single playlist based on what we love to hear most.
+
+Below, we will begin with the two datasets that will be used from this project.
+
+## Data
+```{r}
+load_songs <- function() {
+  library(readr)
+  dir_path  <- "data/mp03"
+  file_name <- "songs.csv"
+  file_path <- file.path(dir_path, file_name)
+
+  #checking dupolicate so that github will not block it
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+  
+  # download
+  if (!file.exists(file_path)) {
+    download.file(
+      "https://raw.githubusercontent.com/gabminamedez/spotify-data/refs/heads/master/data.csv",
+      destfile = file_path,
+      mode = "wb"
+    )
+  }
+  
+  # reading in dataset
+  file_path |>
+    read_csv(show_col_types = FALSE)
+}
+
+songs_df <- load_songs()
+head(songs_df)
+
+```
+
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+clean_artist_string <- function(x) {
+  x |>
+    str_replace_all("\\['", "") |>
+    str_replace_all("'\\]", "") |>
+    str_replace_all("[ ]?'", "") |>
+    str_replace_all("[ ]*,[ ]*", ",")
+}
+
+songs_df |>
+  separate_longer_delim(artists, ",") |>
+  mutate(artist = clean_artist_string(artists)) |>
+  select(-artists)
+
+```
+Thanks to the github user, gabminamedez, we have a master file of a catalogue of songs that contains their respective propertiers such as name, release_date, dancebility, energy and much more that will be integral for our analysis.
+
+```{r}
+load_playlists <- function(n = 10) {
+  library(jsonlite)
+
+  base_url <- "https://raw.githubusercontent.com/DevinOgrady/spotify_million_playlist_dataset/main/data1/"
+  dir_path <- "data/mp03/playlists"
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+
+  playlists <- list()
+  #starting sequence
+  starts     <- seq(from = 0, by = 1000, length.out = n)
+  ends       <- starts + 999
+  file_names <- paste0("mpd.slice.", starts, "-", ends, ".json")
+
+  for (file_name in file_names) {
+    file_url  <- paste0(base_url, file_name)
+    file_path <- file.path(dir_path, file_name)
+
+    # checking it if it is missing
+    if (!file.exists(file_path)) {
+      message("Downloading ", file_name)
+      download.file(file_url, file_path, mode = "wb")
+    }
+    data      <- fromJSON(file_path)
+    playlists <- c(playlists, data$playlists)
+  }
+
+  playlists
+}
+
+# if statement, if false we do not download
+cache_file <- "data/processed_playlists.rds"
+if (file.exists(cache_file)) {
+  playlists <- readRDS(cache_file)
+} else {
+  playlists <- load_playlists(10)
+  saveRDS(playlists, cache_file)
+}
+
+head(playlists) 
+
+
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(stringr)
+
+strip_spotify_prefix <- function(x) {
+  str_extract(x, ".*:.*:(.*)", group = 1)
+}
+playlist_df <- playlists[[1]] |>
+  
+  # 1. Keep just the playlist info + the tracks column
+  mutate(
+    playlist_name      = name,
+    playlist_id        = strip_spotify_prefix(pid),
+    playlist_followers = num_followers
+  ) |>
+  select(playlist_name, playlist_id, playlist_followers, tracks) |>
+  unnest(tracks) |>
+  
+  # These are more of the columns that were specifid we needed for this project
+  mutate(
+    playlist_position = row_number(),                 
+    artist_name       = artist_name,                   
+    artist_id         = strip_spotify_prefix(artist_uri),
+    track_name        = track_name,
+    track_id          = strip_spotify_prefix(track_uri),
+    album_name        = album_name,
+    album_id          = strip_spotify_prefix(album_uri),
+    duration          = duration_ms                    
+  ) |>
+
+  select(
+    playlist_name,
+    playlist_id,
+    playlist_position,
+    playlist_followers,
+    artist_name,
+    artist_id,
+    track_name,
+    track_id,
+    album_name,
+    album_id,
+    duration
+  )
+
+# Look at the first few rows
+head(rectangular_tracks_df)
+
+```
+## Initial Data Exploration
+
+### How many distinct tracks and artists are represented in the playlist data?
+```{r}
+library(dplyr)
+library(knitr)
+playlist_df |>
+  summarise(
+    `Distinct Tracks`  = n_distinct(track_id),
+    `Distinct Artists` = n_distinct(artist_id)
+  ) |>
+  kable(
+    caption = "Unique Number of Artisits & Tracks",
+    align   = "c"
+  )
+
+
+```
+The playlist dataset contains 34,443 distinct tracks and 9,754 distinct artists. Quite a large range!
+
+### What are the 5 most popular tracks in the playlist data?
+```{r}
+
+playlist_df |>
+  count(
+    track_name,
+    artist_name,
+    album_name,
+    name = "Appearances"        
+  ) |>
+  arrange(desc(Appearances)) |>
+  head() |>
+  rename(
+    `Track Name`                     = track_name,
+    `Artist Name`                    = artist_name,
+    `Album Name`                     = album_name,
+    `Number of Playlist Appearances` = Appearances
+  ) |>
+  kable(
+    caption = "Most Popular Tracks in Playlist Dataset",
+    align   = "c"
+  )
+
+```
+In the table above, we display the top songs in the playlist dataset. "One Dance" by Drake, takes top spot as it appears in 55 different playlists.
+
+### What is the most popular track in the playlist data that does not have a corresponding entry in the song characteristics data?
+```{r}
+playlist_df |>
+  anti_join(songs_df, by = c("track_id" = "id")) |>     
+  count(
+    track_name,
+    artist_name,
+    album_name,
+    name = "Appearances"                                
+  ) |>
+  arrange(desc(Appearances)) |>                         
+  slice_head(n = 1) |>                                  
+  rename(                                               
+    `Track Name`                     = track_name,
+    `Artist Name`                    = artist_name,
+    `Album Name`                     = album_name,
+    `Number of Playlist Appearances` = Appearances
+  ) |>
+  kable(
+    caption = "The Most Popular Track that is not in both Datasets",
+    align   = "c"
+  )
+
+
+
+```
+The song "One Dance" by Drake, does not appear in the songs characteristics data "songs_df".
+
+### According to the song characteristics data, what is the most “danceable” track? How often does it appear in a playlist?
+```{r}
+top_song <- songs_df |>
+  arrange(desc(danceability)) |>
+  slice_head(n = 1)
+
+top_song_id <- top_song$id
+appearance_count <- rectangular_tracks_df |>
+  filter(track_id == top_song_id) |>
+  nrow()
+top_song_table <- tibble(
+  track_name            = top_song$name,
+  danceability_score    = top_song$danceability,
+  playlist_appearances  = appearance_count
+)
+
+top_song_table
+
+
+```
+The most "danceable" track, is Funky Cold Medina.
+
+### Which playlist has the longest average track length?
+
+```{r}
+
+playlist_df |>
+  group_by(playlist_name) |>
+  summarise(
+    mean_duration_ms   = mean(duration),
+    median_duration_ms = median(duration),
+    artist_name        = first(artist_name),
+    .groups            = "drop"
+  ) |>
+  arrange(desc(mean_duration_ms)) |>
+  slice_head(n = 1) |>
+  mutate(
+    `Mean duration (sec)`   = mean_duration_ms   / 1000,
+    `Median duration (sec)` = median_duration_ms / 1000
+  ) |>
+  select(
+    playlist_name,
+    artist_name,
+    `Mean duration (sec)`,
+    `Median duration (sec)`
+  ) |>
+  rename(
+    `Playlist Name` = playlist_name,
+    `Artist Name`   = artist_name
+  ) |>
+  kable(
+    caption = "Transit Service With Most UPT In 2023",
+    align   = "c"
+  )
+
+```
+The playlist that has the longest average duration is 411 seconds (mean). The playlist is called "Classical" and is by "Pyotr Ilyich Tchaikovsky"
+
+### What is the most popular playlist on Spotify?
+```{r}
+playlist_df |>
+  slice_max(playlist_followers, n = 1, with_ties = FALSE) |>   # most‑followed playlist
+  mutate(`Duration (sec)` = duration / 1000) |>                # ms → sec
+  select(
+    playlist_name,
+    playlist_position,
+    playlist_followers,
+    artist_name,
+    album_name,
+    `Duration (sec)`
+  ) |>
+  rename(
+    `Playlist Name`     = playlist_name,
+    `Playlist Position` = playlist_position,
+    `Playlist Followers`= playlist_followers,
+    `Artist Name`       = artist_name,
+    `Album Name`        = album_name
+  ) |>
+  kable(
+    caption = "Most popular playlist on Spotify",
+    align   = "c"
+  )
+
+```
+The most popular playlist on Spotify is "Tangled", with 1038 followers.
+
+## Task 5: Visually Identifying Characteristics of Popular Songs
+
+Inner-joiing both the song characteristics & playlist information datasets. Dataframe will be called inner_joined_data.
+```{r}
+inner_joined_data <- songs_df |>
+  # rename the song‐data 'id' column so it matches
+  rename(track_id = id) |>
+  # now do the join by track_id
+  inner_join(playlist_df, by = "track_id")
+
+head(inner_joined_data)
+
+
+```
+
+### Is the popularity column correlated with the number of playlist appearances? If so, to what degree?
+
+```{r}
+library(ggplot2)
+
+track_stats <- inner_joined_data |>
+  count(track_id, popularity, name = "play_count")
+
+#Pearson correlation between play count and popularity
+corr_coef <- cor(track_stats$play_count, track_stats$popularity)
+print(paste("Pearson correlation:", round(corr_coef, 3)))
+
+
+#Scatterplot
+track_stats |>
+  ggplot(aes(x = play_count, y = popularity)) +
+  geom_point(alpha = 0.4, size = 2, color = "#2C3E50") +
+  geom_smooth(method = "lm", color = "#E74C3C", se = FALSE) +
+  scale_x_log10() +
+  labs(
+    title    = "Spotify Popularity vs. # of Playlist Appearances",
+    subtitle = paste0("Pearson r = ", round(corr_coef, 2)),
+    x        = "Playlist Appearances",
+    y        = "Spotify Popularity "
+  ) +
+  theme_minimal(base_size = 14)
+
+pop_cutoff <- 70
+
+
+
+```
+To answer this question, we ran a pearson correlation test to explore if if the populairty column does influence the position a song is. Given the correlation coefficient of .49, we can say that is moderate positive correlation between the two variables. This tell us that popular songs may not always appear in playlists, as some do have high populairty but lowe appearnces. 
+
+**fix**
+In what year were the most popular songs released?
+
+```{r}
+year_popularity <- inner_joined_data |>
+  filter(year >= 1950) |>
+  group_by(year) |>
+  summarise(
+    median_popularity = mean(popularity),
+    .groups = "drop"
+  ) |>
+  arrange(desc(median_popularity))
+
+year_popularity |>
+  slice_head(n = 1)
+# e.g. year == 2019
+
+# 3. Plot (ticks every 3 years on the x‑axis)
+year_popularity |>
+  ggplot(aes(x = year, y = median_popularity)) +
+  geom_point(size = 3, color = "#2C3E50") +
+  geom_line(color = "#E74C3C", size = 1) +
+  scale_x_continuous(
+    breaks = seq(1950, max(year_popularity$year), by = 3)
+  ) +
+  labs(
+    title = "Mean Spotify Popularity by Release Year (1950+)",
+    x     = "Release Year",
+    y     = "Mean Popularity (0–100)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+
+
+```
+
+
+
+
+
+
+
+
+```{r}
+
+
+
+```
+
+
+
