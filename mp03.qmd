@@ -76,47 +76,58 @@ Thanks to the github user, gabminamedez, we have a master file of a catalogue of
 
 ```{r}
 load_playlists <- function(n = 10) {
-  library(jsonlite)
-
   base_url <- "https://raw.githubusercontent.com/DevinOgrady/spotify_million_playlist_dataset/main/data1/"
   dir_path <- "data/mp03/playlists"
-  if (!dir.exists(dir_path)) {
-    dir.create(dir_path, recursive = TRUE)
-  }
+  if (!dir.exists(dir_path)) dir.create(dir_path, recursive = TRUE)
 
   playlists <- list()
-  #starting sequence
-  starts     <- seq(from = 0, by = 1000, length.out = n)
-  ends       <- starts + 999
-  file_names <- paste0("mpd.slice.", starts, "-", ends, ".json")
 
-  for (file_name in file_names) {
-    file_url  <- paste0(base_url, file_name)
+  for (i in 0:(n - 1)) {
+    start <- i * 1000
+    end <- start + 999
+    file_name <- sprintf("mpd.slice.%d-%d.json", start, end)
+    file_url <- paste0(base_url, file_name)
     file_path <- file.path(dir_path, file_name)
 
-    # checking it if it is missing
     if (!file.exists(file_path)) {
-      message("Downloading ", file_name)
-      download.file(file_url, file_path, mode = "wb")
+      message("Downloading: ", file_name)
+      result <- tryCatch({
+        download.file(file_url, file_path, mode = "wb", quiet = TRUE)
+        TRUE
+      }, error = function(e) {
+        message("Failed to download ", file_name)
+        FALSE
+      })
+
+      if (!result) next
     }
-    data      <- fromJSON(file_path)
-    playlists <- c(playlists, data$playlists)
+
+    if (file.exists(file_path)) {
+      json_data <- tryCatch({
+        jsonlite::fromJSON(file_path)
+      }, error = function(e) {
+        message("Failed to parse ", file_name)
+        NULL
+      })
+
+      if (!is.null(json_data)) {
+        playlists[[length(playlists) + 1]] <- json_data$playlists
+      }
+    }
   }
 
-  playlists
+  return(playlists)
 }
 
-# if statement, if false we do not download
-cache_file <- "data/processed_playlists.rds"
-if (file.exists(cache_file)) {
-  playlists <- readRDS(cache_file)
+if (file.exists("data/processed_playlists.rds")) {
+  playlists <- readRDS("data/processed_playlists.rds")
 } else {
-  playlists <- load_playlists(10)
-  saveRDS(playlists, cache_file)
+  playlists <- load_playlists(n = 10)
+  saveRDS(playlists, "data/processed_playlists.rds")
 }
 
-head(playlists) 
 
+playlists <- load_playlists(n = 10)  
 
 ```
 
@@ -166,7 +177,7 @@ playlist_df <- playlists[[1]] |>
   )
 
 # Look at the first few rows
-head(rectangular_tracks_df)
+head(playlist_df)
 
 ```
 ## Initial Data Exploration
@@ -250,7 +261,7 @@ top_song <- songs_df |>
   slice_head(n = 1)
 
 top_song_id <- top_song$id
-appearance_count <- rectangular_tracks_df |>
+appearance_count <- playlist_df |>
   filter(track_id == top_song_id) |>
   nrow()
 top_song_table <- tibble(
@@ -419,7 +430,7 @@ year_popularity |>
 
 
 re
-
+f
 
 
 
