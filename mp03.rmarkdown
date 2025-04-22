@@ -21,6 +21,8 @@ execute:
 
 
 
+
+
 # Introduction
 
 In this project, we harness Spotify’s rich dataset to answer a simple but compelling question: what makes a song not just good, but universally loved? By tapping into two distinct data exports, one detailing track popularity metrics and another cataloguing song attributes (tempo, key, danceability, and energy)—we can move beyond subjective taste and build an evidence‑backed “ultimate playlist.”
@@ -30,6 +32,8 @@ This project is also insipired by the "All Rise" playlist, by Mr Barney Stinson,
 Below, we will begin with the two datasets that will be used from this project.
 
 ## Data
+
+
 ```{r}
 load_songs <- function() {
   library(readr)
@@ -61,8 +65,6 @@ head(songs_df)
 
 ```
 
-
-
 ```{r}
 library(dplyr)
 library(tidyr)
@@ -82,7 +84,11 @@ songs_df |>
   select(-artists)
 
 ```
+
+
 Thanks to the github user, gabminamedez, we have a master file of a catalogue of songs that contains their respective propertiers such as name, release_date, dancebility, energy and much more that will be integral for our analysis.
+
+
 
 ```{r}
 load_playlists <- function(n = 10) {
@@ -190,9 +196,13 @@ playlist_df <- playlists[[1]] |>
 head(playlist_df)
 
 ```
+
+
 ## Initial Data Exploration
 
 ### How many distinct tracks and artists are represented in the playlist data?
+
+
 ```{r}
 library(dplyr)
 library(knitr)
@@ -208,9 +218,13 @@ playlist_df |>
 
 
 ```
+
+
 The playlist dataset contains 34,443 distinct tracks and 9,754 distinct artists. Quite a large range!
 
 ### What are the 5 most popular tracks in the playlist data?
+
+
 ```{r}
 
 playlist_df |>
@@ -234,9 +248,13 @@ playlist_df |>
   )
 
 ```
+
+
 In the table above, we display the top songs in the playlist dataset. "One Dance" by Drake, takes top spot as it appears in 55 different playlists.
 
 ### What is the most popular track in the playlist data that does not have a corresponding entry in the song characteristics data?
+
+
 ```{r}
 playlist_df |>
   anti_join(songs_df, by = c("track_id" = "id")) |>     
@@ -262,9 +280,13 @@ playlist_df |>
 
 
 ```
+
+
 The song "One Dance" by Drake, does not appear in the songs characteristics data "songs_df".
 
 ### According to the song characteristics data, what is the most “danceable” track? How often does it appear in a playlist?
+
+
 ```{r}
 top_song <- songs_df |>
   arrange(desc(danceability)) |>
@@ -284,9 +306,13 @@ top_song_table
 
 
 ```
+
+
 The most "danceable" track, is Funky Cold Medina.
 
 ### Which playlist has the longest average track length?
+
+
 
 ```{r}
 
@@ -320,9 +346,13 @@ playlist_df |>
   )
 
 ```
+
+
 The playlist that has the longest average duration is 411 seconds (mean). The playlist is called "Classical" and is by "Pyotr Ilyich Tchaikovsky"
 
 ### What is the most popular playlist on Spotify?
+
+
 ```{r}
 playlist_df |>
   slice_max(playlist_followers, n = 1, with_ties = FALSE) |>   # most‑followed playlist
@@ -348,11 +378,15 @@ playlist_df |>
   )
 
 ```
+
+
 The most popular playlist on Spotify is "Tangled", with 1038 followers.
 
 ## Task 5: Visually Identifying Characteristics of Popular Songs
 
 Inner-joiing both the song characteristics & playlist information datasets. Dataframe will be called inner_joined_data.
+
+
 ```{r}
 inner_joined_data <- songs_df |>
   # rename the song‐data 'id' column so it matches
@@ -365,7 +399,11 @@ head(inner_joined_data)
 
 ```
 
+
+
 ### Is the popularity column correlated with the number of playlist appearances? If so, to what degree?
+
+
 
 ```{r}
 library(ggplot2)
@@ -397,10 +435,14 @@ pop_cutoff <- 70
 
 
 ```
+
+
 We conducted a Pearson correlation analysis to examine whether a song’s **popularity** score is related to its **playlist position**. The resulting correlation coefficient of **0.49** indicates a **moderate positive relationship**: in general, more‑popular songs tend to appear earlier in playlists. However, the correlation is far from perfect, so highly popular tracks can still show up infrequently—or later—on certain playlists.
 
 
 ### In what year were the most popular songs released?
+
+
 
 ```{r}
 year_popularity <- inner_joined_data |>
@@ -437,9 +479,13 @@ year_popularity |>
 
 ```
 
+
+
 Over time, songs have generally grown in popularity. Beginning in the 1980s, however, the upward trend levels off, implying that a greater volume of popular tracks was released. This plateau likely reflects wider access to music via radio, television, physical media, and eventually the internet.
 
 ### In what year did danceability peak?
+
+
 
 ```{r}
 
@@ -471,9 +517,13 @@ year_dance |>
 
 
 ```
+
+
 The chart plots average **danceability** (0–1 scale) in 25‑year release intervals. Danceability climbs steadily from the 1950s, reaching its highest point in 2017 during the 2010s, indicating that songs have become progressively more dance‑friendly over time.
 
 ### Which decade is most represented on user playlists? (The integer division (%/%) operator may be useful for computing decades from years.)
+
+
 ```{r}
 inner_joined_data |>
   mutate(decade = (year %/% 10) * 10) |>           
@@ -493,10 +543,14 @@ inner_joined_data |>
 
 ```
 
+
+
 The 2010s have by far been the most reresented on users playlists. 
 
 
 ### Create a plot of key frequency among songs. Because musical keys exist in a ‘cycle’, your plot should use polar (circular) coordinates.
+
+
 ```{r}
 key_counts <- inner_joined_data |>
   count(key, name = "freq") |>
@@ -519,9 +573,13 @@ ggplot(key_counts, aes(x = factor(key), y = freq)) +
   )
 
 ```
+
+
 The polar plot charts how frequently each musical key—numbered 0 through 11—occurs. It clearly highlights which keys dominate the songs in users’ playlists.
 
 ### What are the most popular track lengths? (Are short tracks, long tracks, or something in between most commonly included in user playlists?)
+
+
 ```{r}
 library(dplyr)
 library(ggplot2)
@@ -568,9 +626,13 @@ length_freq |>
 
 
 ```
+
+
 The chart compares track length (in minutes) with how often songs appear in playlists. Most tracks cluster in the 2–4‑ and 4–6‑minute ranges, suggesting that songs of these lengths tend to be the most popular. Tracks shorter than two minutes or longer than six show a sharp drop‑off, indicating that listeners are less likely to include unusually brief or extended songs in their everyday playlists.
 
 ### Do higher‑energy songs tend to be more popular on Spotify?
+
+
 ```{r}
 
 corr_coef <- inner_joined_data |>
@@ -592,10 +654,14 @@ inner_joined_data |>
 
 
 ```
+
+
 A Spearman correlation of **0.02** between a track’s **energy** and its **popularity** shows virtually no systematic connection—amping up the energy does not, on its own, catapult a song onto more playlists. The coefficient is so close to zero that random variation could overwhelm any real effect, hinting (if anything) at a faintly opposite trend. In practice, elements like melody, marketing reach, and cultural zeitgeist likely play a much larger role in determining whether a track catches fire with listeners.
 
 
 ###Do more acoustic songs tend to be more or less popular on Spotify?
+
+
 ```{r}
 inner_joined_data |>
   ggplot(aes(x = acousticness, y = popularity)) +
@@ -616,9 +682,13 @@ inner_joined_data |>
   )
 
 ```
+
+
 There is a noticeable negative linear relationship between a track’s **popularity** and its **acousticness**—the more acoustic a song sounds, the less likely it is to rack up high popularity scores. Both metrics are right‑skewed, meaning most songs cluster at the “high‑popularity / low‑acousticness” end of the spectrum. In other words, if you want your next release to land on more user‑generated playlists, consider trimming back the unplugged, acoustic vibe and leaning into a more produced sound.
 
 ### Does the higher danceability of a song dictate its popularity?
+
+
 
 ```{r}
 
@@ -642,6 +712,8 @@ dance_pop |>
   theme_minimal(base_size = 14)
 
 ```
+
+
 Above, we dive into if a song has a higher dancebaility can it also have more popularity? By computing a spearman correlation coefficient, the results show with a 0.12 that there is no association with one another.
 
 ## Building The Ultimate Playlist 
@@ -650,6 +722,8 @@ To craft the ultimate playlist, we’ve selected A$AP Rocky’s “Fashion Killa
 
 
 ### Heuristic 1: What other songs commonly appear on playlists along side this song?
+
+
 ```{r}
 #Get all playlist IDs that contain “Fashion Killa”
 anchor_playlists <- inner_joined_data |>
@@ -688,7 +762,11 @@ cooccur_songs |>
 
 
 
+
+
 ### Heuristic 2: What other songs have a similar tempo?
+
+
 ```{r}
 
 fk_info <- inner_joined_data |>
@@ -734,7 +812,11 @@ similar_songs |>
 
 
 
+
+
 ### Heuristic 3: What other songs were released by the same artist?
+
+
 ```{r}
 anchor_artist <- inner_joined_data |>
   filter(track_name == "Fashion Killa") |>
@@ -763,7 +845,11 @@ other_songs |>
 ```
 
 
+
+
 ### Heuristic 4: What other songs were released in the same year and have similar levels of acousticness, danceability, etc.?
+
+
 ```{r}
 library(dplyr)
 
@@ -813,7 +899,11 @@ recommendations
 ```
 
 
+
+
 ### 
+
+
 ```{r}
 
 
