@@ -376,10 +376,10 @@ pop_cutoff <- 70
 
 
 ```
-To answer this question, we ran a pearson correlation test to explore if if the populairty column does influence the position a song is. Given the correlation coefficient of .49, we can say that is moderate positive correlation between the two variables. This tell us that popular songs may not always appear in playlists, as some do have high populairty but lowe appearnces. 
+We conducted a Pearson correlation analysis to examine whether a song’s **popularity** score is related to its **playlist position**. The resulting correlation coefficient of **0.49** indicates a **moderate positive relationship**: in general, more‑popular songs tend to appear earlier in playlists. However, the correlation is far from perfect, so highly popular tracks can still show up infrequently—or later—on certain playlists.
 
-**fix**
-In what year were the most popular songs released?
+
+### In what year were the most popular songs released?
 
 ```{r}
 year_popularity <- inner_joined_data |>
