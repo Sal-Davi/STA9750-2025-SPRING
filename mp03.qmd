@@ -19,6 +19,7 @@ execute:
 
 ---
 
+![The Ultimate Playlist!](docs/Asap_Mob.jpg)
 
 
 # Introduction
@@ -270,7 +271,7 @@ top_song <- songs_df |>
   arrange(desc(danceability)) |>
   slice_head(n = 1)
 
-appearance_count <- rectangular_tracks_df |>
+appearance_count <- playlist_df |>
   filter(track_id == top_song$id) |>
   nrow()
 
@@ -649,6 +650,20 @@ Above, we dive into if a song has a higher dancebaility can it also have more po
 ## Building The Ultimate Playlist 
 
 To craft the ultimate playlist, we’ve selected A$AP Rocky’s “Fashion Killa” as the anchor track—the stylistic benchmark against which every other song will be measured. In the sections that follow, we’ll perform a data‑driven analysis of tempo, key, mood, and lyrical themes to uncover the tracks that complement its sleek, laid‑back vibe. The goal is a seamlessly flowing set that not only echoes the energy of “Fashion Killa” but also keeps listeners engaged from start to finish.
+
+**Video For Fashion Killa**
+
+
+::: center
+<iframe 
+  width="560" 
+  height="315" 
+  src="https://www.youtube.com/embed/k3_iTjll12Q" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowfullscreen>
+</iframe>
+:::
 
 
 ### Heuristic 1: What other songs commonly appear on playlists along side this song?
