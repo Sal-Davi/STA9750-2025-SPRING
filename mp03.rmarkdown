@@ -21,6 +21,7 @@ execute:
 
 
 
+![The Ultimate Playlist!](docs/Asap_Mob.jpg)
 
 
 # Introduction
@@ -292,17 +293,26 @@ top_song <- songs_df |>
   arrange(desc(danceability)) |>
   slice_head(n = 1)
 
-top_song_id <- top_song$id
 appearance_count <- playlist_df |>
-  filter(track_id == top_song_id) |>
+  filter(track_id == top_song$id) |>
   nrow()
+
 top_song_table <- tibble(
   track_name            = top_song$name,
   danceability_score    = top_song$danceability,
   playlist_appearances  = appearance_count
 )
+top_song_table |>
+  rename(
+    "Track Name"            = track_name,
+    "Danceability Score"    = danceability_score,
+    "Playlist Appearances"  = playlist_appearances
+  ) |>
+  kable(
+    caption = "Most Danceable Track and Its Playlist Appearances",
+    align   = c("l", "r", "r")
+  )
 
-top_song_table
 
 
 ```
@@ -454,9 +464,6 @@ year_popularity <- inner_joined_data |>
   ) |>
   arrange(desc(median_popularity))
 
-year_popularity |>
-  slice_head(n = 1)
-# e.g. year == 2019
 
 # 3. Plot (ticks every 3 years on the x‑axis)
 year_popularity |>
@@ -499,8 +506,6 @@ peak_year <- year_dance |>
   arrange(desc(mean_danceability)) |>
   slice_head(n = 1)
 
-print(peak_year)
-# This tells you the single year with the highest average danceability.
 
 #Plot
 year_dance |>
@@ -519,9 +524,9 @@ year_dance |>
 ```
 
 
-The chart plots average **danceability** (0–1 scale) in 25‑year release intervals. Danceability climbs steadily from the 1950s, reaching its highest point in 2017 during the 2010s, indicating that songs have become progressively more dance‑friendly over time.
+The chart plots average **danceability** (0–1 scale) in 25‑year release intervals. Danceability climbs steadily from the 1950s, reaching its highest point in 2020 during the 2010s, indicating that songs have become progressively more dance‑friendly over time.The value was at .673.
 
-### Which decade is most represented on user playlists? (The integer division (%/%) operator may be useful for computing decades from years.)
+### Which decade is most represented on user playlists?
 
 
 ```{r}
@@ -605,8 +610,6 @@ length_freq <- length_bins |>
   count(length_bin, name = "freq") |>
   arrange(desc(freq))
 
-print(length_freq)
-# A tibble showing which length bin is most common
 
 # 3. Plot the distribution as a bar chart
 length_freq |>
@@ -659,7 +662,7 @@ inner_joined_data |>
 A Spearman correlation of **0.02** between a track’s **energy** and its **popularity** shows virtually no systematic connection—amping up the energy does not, on its own, catapult a song onto more playlists. The coefficient is so close to zero that random variation could overwhelm any real effect, hinting (if anything) at a faintly opposite trend. In practice, elements like melody, marketing reach, and cultural zeitgeist likely play a much larger role in determining whether a track catches fire with listeners.
 
 
-###Do more acoustic songs tend to be more or less popular on Spotify?
+### Do more acoustic songs tend to be more or less popular on Spotify?
 
 
 ```{r}
@@ -719,6 +722,20 @@ Above, we dive into if a song has a higher dancebaility can it also have more po
 ## Building The Ultimate Playlist 
 
 To craft the ultimate playlist, we’ve selected A$AP Rocky’s “Fashion Killa” as the anchor track—the stylistic benchmark against which every other song will be measured. In the sections that follow, we’ll perform a data‑driven analysis of tempo, key, mood, and lyrical themes to uncover the tracks that complement its sleek, laid‑back vibe. The goal is a seamlessly flowing set that not only echoes the energy of “Fashion Killa” but also keeps listeners engaged from start to finish.
+
+**Video For Fashion Killa**
+
+
+::: center
+<iframe 
+  width="560" 
+  height="315" 
+  src="https://www.youtube.com/embed/k3_iTjll12Q" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowfullscreen>
+</iframe>
+:::
 
 
 ### Heuristic 1: What other songs commonly appear on playlists along side this song?
@@ -896,6 +913,33 @@ recommendations <- candidates |>
 
 recommendations 
 
+recommendations |>
+  # Exclude the first row "Goldie"
+  filter(track_name != "Goldie") |>
+  select(
+    track_name,
+    artist_name,
+    popularity,
+    acousticness,
+    danceability,
+    energy,
+    liveness,
+    diff
+  ) |>
+  rename(
+    "Track Name"    = track_name,
+    "Artist Name"   = artist_name,
+    "Popularity"    = popularity,
+    "Acousticness"  = acousticness,
+    "Danceability"  = danceability,
+    "Energy"        = energy,
+    "Liveness"      = liveness,
+    "Difference"    = diff
+  ) |>
+  kable(
+    caption = "Top 30 Similar Tracks to “Fashion Killa” (excluding “Goldie”)",
+    align   = c("l", "l", "r", "r", "r", "r", "r", "r")
+  )
 ```
 
 
