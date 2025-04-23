@@ -1659,7 +1659,7 @@ window.Quarto = {
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb42"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co">#Fashion Killa’s stats</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Get Fashion Killa’s stats once</span></span>
 <span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a>anchor <span class="ot">&lt;-</span> inner_joined_data <span class="sc">|&gt;</span></span>
 <span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(track_name <span class="sc">==</span> <span class="st">"Fashion Killa"</span>) <span class="sc">|&gt;</span></span>
 <span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">1</span>)</span>
@@ -1670,47 +1670,54 @@ window.Quarto = {
 <span id="cb42-11"><a href="#cb42-11" aria-hidden="true" tabindex="-1"></a>en0   <span class="ot">&lt;-</span> anchor<span class="sc">$</span>energy</span>
 <span id="cb42-12"><a href="#cb42-12" aria-hidden="true" tabindex="-1"></a>li0   <span class="ot">&lt;-</span> anchor<span class="sc">$</span>liveness</span>
 <span id="cb42-13"><a href="#cb42-13" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a>candidates <span class="ot">&lt;-</span> inner_joined_data <span class="sc">|&gt;</span></span>
-<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
-<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>    year      <span class="sc">==</span> year0,</span>
-<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>    track_name <span class="sc">!=</span> <span class="st">"Fashion Killa"</span></span>
-<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(track_id, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a>recommendations <span class="ot">&lt;-</span> candidates <span class="sc">|&gt;</span></span>
-<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
-<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> <span class="fu">abs</span>(acousticness <span class="sc">-</span> ac0) <span class="sc">+</span></span>
-<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>           <span class="fu">abs</span>(danceability <span class="sc">-</span> da0) <span class="sc">+</span></span>
-<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>           <span class="fu">abs</span>(energy      <span class="sc">-</span> en0) <span class="sc">+</span></span>
-<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>           <span class="fu">abs</span>(liveness    <span class="sc">-</span> li0)</span>
-<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(diff) <span class="sc">|&gt;</span></span>
-<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
-<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>    track_name,     </span>
-<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>    artist_name,</span>
-<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>    popularity,    </span>
-<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>    acousticness,</span>
-<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>    danceability,</span>
-<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>    energy,</span>
-<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>    liveness,</span>
-<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>    diff</span>
-<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
-<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">30</span>)</span>
-<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>anchor</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb42-14"><a href="#cb42-14" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Pull all OTHER tracks from that same year, dedupe</span></span>
+<span id="cb42-15"><a href="#cb42-15" aria-hidden="true" tabindex="-1"></a>candidates <span class="ot">&lt;-</span> inner_joined_data <span class="sc">|&gt;</span></span>
+<span id="cb42-16"><a href="#cb42-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(</span>
+<span id="cb42-17"><a href="#cb42-17" aria-hidden="true" tabindex="-1"></a>    year      <span class="sc">==</span> year0,</span>
+<span id="cb42-18"><a href="#cb42-18" aria-hidden="true" tabindex="-1"></a>    track_name <span class="sc">!=</span> <span class="st">"Fashion Killa"</span></span>
+<span id="cb42-19"><a href="#cb42-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb42-20"><a href="#cb42-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">distinct</span>(track_id, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb42-21"><a href="#cb42-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-22"><a href="#cb42-22" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Compute similarity and pick top 10, selecting song title and popularity</span></span>
+<span id="cb42-23"><a href="#cb42-23" aria-hidden="true" tabindex="-1"></a>recommendations <span class="ot">&lt;-</span> candidates <span class="sc">|&gt;</span></span>
+<span id="cb42-24"><a href="#cb42-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb42-25"><a href="#cb42-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">diff =</span> <span class="fu">abs</span>(acousticness <span class="sc">-</span> ac0) <span class="sc">+</span></span>
+<span id="cb42-26"><a href="#cb42-26" aria-hidden="true" tabindex="-1"></a>           <span class="fu">abs</span>(danceability <span class="sc">-</span> da0) <span class="sc">+</span></span>
+<span id="cb42-27"><a href="#cb42-27" aria-hidden="true" tabindex="-1"></a>           <span class="fu">abs</span>(energy      <span class="sc">-</span> en0) <span class="sc">+</span></span>
+<span id="cb42-28"><a href="#cb42-28" aria-hidden="true" tabindex="-1"></a>           <span class="fu">abs</span>(liveness    <span class="sc">-</span> li0)</span>
+<span id="cb42-29"><a href="#cb42-29" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb42-30"><a href="#cb42-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(diff) <span class="sc">|&gt;</span></span>
+<span id="cb42-31"><a href="#cb42-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
+<span id="cb42-32"><a href="#cb42-32" aria-hidden="true" tabindex="-1"></a>    track_name,     <span class="co"># song title</span></span>
+<span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>    artist_name,</span>
+<span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>    popularity,     <span class="co"># include popularity now</span></span>
+<span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a>    acousticness,</span>
+<span id="cb42-36"><a href="#cb42-36" aria-hidden="true" tabindex="-1"></a>    danceability,</span>
+<span id="cb42-37"><a href="#cb42-37" aria-hidden="true" tabindex="-1"></a>    energy,</span>
+<span id="cb42-38"><a href="#cb42-38" aria-hidden="true" tabindex="-1"></a>    liveness,</span>
+<span id="cb42-39"><a href="#cb42-39" aria-hidden="true" tabindex="-1"></a>    diff</span>
+<span id="cb42-40"><a href="#cb42-40" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb42-41"><a href="#cb42-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_head</span>(<span class="at">n =</span> <span class="dv">30</span>)</span>
+<span id="cb42-42"><a href="#cb42-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-43"><a href="#cb42-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-44"><a href="#cb42-44" aria-hidden="true" tabindex="-1"></a>recommendations </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 1 × 29
-  track_id             name  artists duration_ms release_date  year acousticness
-  &lt;chr&gt;                &lt;chr&gt; &lt;chr&gt;         &lt;dbl&gt; &lt;chr&gt;        &lt;dbl&gt;        &lt;dbl&gt;
-1 0O3TAouZE4vL9dM5Syx… Fash… ['A$AP…      236280 2013          2013        0.293
-# ℹ 22 more variables: danceability &lt;dbl&gt;, energy &lt;dbl&gt;,
-#   instrumentalness &lt;dbl&gt;, liveness &lt;dbl&gt;, loudness &lt;dbl&gt;, speechiness &lt;dbl&gt;,
-#   tempo &lt;dbl&gt;, valence &lt;dbl&gt;, mode &lt;dbl&gt;, key &lt;dbl&gt;, popularity &lt;dbl&gt;,
-#   explicit &lt;dbl&gt;, playlist_name &lt;chr&gt;, playlist_id &lt;chr&gt;,
-#   playlist_position &lt;int&gt;, playlist_followers &lt;int&gt;, artist_name &lt;chr&gt;,
-#   artist_id &lt;chr&gt;, track_name &lt;chr&gt;, album_name &lt;chr&gt;, album_id &lt;chr&gt;,
-#   duration &lt;int&gt;</code></pre>
+<pre><code># A tibble: 30 × 8
+   track_name   artist_name popularity acousticness danceability energy liveness
+   &lt;chr&gt;        &lt;chr&gt;            &lt;dbl&gt;        &lt;dbl&gt;        &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;
+ 1 Goldie       A$AP Rocky          66        0.225        0.697  0.848    0.493
+ 2 El Inmigran… Calibre 50          50        0.403        0.797  0.758    0.623
+ 3 Love Game    Eminem              55        0.359        0.766  0.941    0.585
+ 4 La Hummer Y… Voz De Man…         63        0.287        0.788  0.785    0.259
+ 5 Tunnel Visi… Justin Tim…         52        0.275        0.572  0.771    0.473
+ 6 Guap         Big Sean            54        0.311        0.65   0.723    0.412
+ 7 Freak Hoe    Speaker Kn…         54        0.1          0.794  0.871    0.384
+ 8 Better Than… One Direct…         64        0.114        0.627  0.839    0.534
+ 9 You're Not … Blood Oran…         60        0.189        0.74   0.798    0.305
+10 Daydreamin'  Ariana Gra…         49        0.233        0.675  0.643    0.561
+# ℹ 20 more rows
+# ℹ 1 more variable: diff &lt;dbl&gt;</code></pre>
 </div>
 </div>
 </section>
