@@ -191,8 +191,6 @@ playlist_df <- playlists[[1]] |>
     duration
   )
 
-# Look at the first few rows
-head(playlist_df)
 
 ```
 ## Initial Data Exploration
