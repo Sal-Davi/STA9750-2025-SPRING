@@ -876,7 +876,7 @@ window.Quarto = {
 <details class="code-fold">
 <summary>Show the code</summary>
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>playlist_df <span class="sc">|&gt;</span></span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(playlist_followers, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span>   <span class="co"># most‑followed playlist</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">slice_max</span>(playlist_followers, <span class="at">n =</span> <span class="dv">1</span>, <span class="at">with_ties =</span> <span class="cn">FALSE</span>) <span class="sc">|&gt;</span>   <span class="co"># with_ties helps keep out duplicates from appearing</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="st">`</span><span class="at">Duration (sec)</span><span class="st">`</span> <span class="ot">=</span> duration <span class="sc">/</span> <span class="dv">1000</span>) <span class="sc">|&gt;</span>                <span class="co"># ms → sec</span></span>
 <span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(</span>
 <span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>    playlist_name,</span>
@@ -1339,6 +1339,7 @@ window.Quarto = {
 <section id="building-the-ultimate-playlist" class="level2">
 <h2 class="anchored" data-anchor-id="building-the-ultimate-playlist">Building The Ultimate Playlist</h2>
 <p>To craft the ultimate playlist, we’ve selected A$AP Rocky’s “Fashion Killa” as the anchor track—the stylistic benchmark against which every other song will be measured. In the sections that follow, we’ll perform a data‑driven analysis of tempo, key, mood, and lyrical themes to uncover the tracks that complement its sleek, laid‑back vibe. The goal is a seamlessly flowing set that not only echoes the energy of “Fashion Killa” but also keeps listeners engaged from start to finish.</p>
+<p>But also to keep it simple, I need some new music to listen to…</p>
 <p><strong>Video For Fashion Killa</strong> (Clean)</p>
 <div class="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/k3_iTjll12Q" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="">
