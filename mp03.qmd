@@ -107,7 +107,7 @@ load_playlists <- function(n = 10) {
     dir.create(dir_path, recursive = TRUE)
   }
   
-  # Compute the start indices for each slice
+  # Here we are beginning the sequence at 0 and stopping at 1000. Per professor's instructions.
   slice_starts <- seq(from = 0, by = 1000, length.out = n)
   
   playlists <- list()
