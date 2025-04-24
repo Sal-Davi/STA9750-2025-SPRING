@@ -25,13 +25,13 @@ execute:
 
 # Introduction
 
-In this project, we harness Spotify’s rich dataset to answer a simple but compelling question: what makes a song not just good, but universally loved? By tapping into two distinct data exports, one detailing track popularity metrics and another cataloguing song attributes (tempo, key, danceability, and energy)—we can move beyond subjective taste and build an evidence‑backed “ultimate playlist.”
+In this project, we harness data to answer a simple but compelling question: what makes a song not just good, but universally loved? By tapping into two distinct data exports, one detailing track popularity metrics and another cataloguing song attributes (tempo, key, danceability, and energy) we can move beyond subjective taste and build an evidence‑backed "Ultimate Playlist.”
 
-Back in high school—and honestly, ever since—my playlists were ruled by ASAP Mob and especially ASAP Rocky. Even though the crew isn’t cranking out tracks like they used to, I’m ready to breathe new life into my listening lineup. This time, I’m letting the data steer the vibes and build the *truly* ultimate playlist. **Armed with analytics, I’ll uncover hidden gems and forgotten bangers that’ll keep every session feeling fresh and fire.**
+Back in high school and honestly, ever since, my playlists were ruled by ASAP Mob and especially ASAP Rocky. Even though the crew isn’t cranking out tracks like they used to, I’m ready to breathe new life into my listening lineup. This time, I’m letting the data steer the vibes and build the *truly* ultimate playlist. **Armed with analytics, I’ll uncover hidden gems and forgotten bangers that’ll keep every session feeling fresh and fire.**
 
 This project is also insipired by the "All Rise" playlist, by Mr Barney Stinson, as the Ultimate Playtlist helps define a great aggregation of music into a single playlist based on what we love to hear most.
 
-Below, we are pulling in the two datasets for this project straight from GitHub, teeing them up to fuel the exploration that follows.
+Below, we are pulling in the two datasets for this project straight from GitHub, preparing us for the analysis that follows.
 
 ### Data
 ```{r}
@@ -94,59 +94,57 @@ clean_songs |>
 Thanks to the github user, gabminamedez, we have a master file of a catalogue of songs that contains their respective propertiers such as name, release_date, dancebility, energy and much more that will be integral for our analysis.
 
 ```{r}
+#After donwloading the entire dataset, I could not render it on my PC. We are only slicing the first 1000 files.
+#Credit: GPT for the for loop
+library(jsonlite)
+
 load_playlists <- function(n = 10) {
-  base_url <- "https://raw.githubusercontent.com/DevinOgrady/spotify_million_playlist_dataset/main/data1/"
-  dir_path <- "data/mp03/playlists"
-  if (!dir.exists(dir_path)) dir.create(dir_path, recursive = TRUE)
-
+  base_url  <- "https://raw.githubusercontent.com/DevinOgrady/spotify_million_playlist_dataset/main/data1/"
+  dir_path  <- "data/mp03/playlists"
+  
+  # Create folder 
+  if (!dir.exists(dir_path)) {
+    dir.create(dir_path, recursive = TRUE)
+  }
+  
+  # Compute the start indices for each slice
+  slice_starts <- seq(from = 0, by = 1000, length.out = n)
+  
   playlists <- list()
-
-  for (i in 0:(n - 1)) {
-    start <- i * 1000
-    end <- start + 999
+  
+  for (start in slice_starts) {
+    end       <- start + 999
     file_name <- sprintf("mpd.slice.%d-%d.json", start, end)
-    file_url <- paste0(base_url, file_name)
+    file_url  <- paste0(base_url, file_name)
     file_path <- file.path(dir_path, file_name)
-
+    
     if (!file.exists(file_path)) {
-      message("Downloading: ", file_name)
-      result <- tryCatch({
-        download.file(file_url, file_path, mode = "wb", quiet = TRUE)
-        TRUE
-      }, error = function(e) {
-        message("Failed to download ", file_name)
-        FALSE
-      })
-
-      if (!result) next
+      message("Downloading ", file_name)
+      tryCatch(
+        download.file(file_url, file_path, mode = "wb", quiet = TRUE),
+        error = function(e) message("  ✗ Download failed for ", file_name)
+      )
+      if (!file.exists(file_path)) next
     }
-
-    if (file.exists(file_path)) {
-      json_data <- tryCatch({
-        jsonlite::fromJSON(file_path)
-      }, error = function(e) {
-        message("Failed to parse ", file_name)
+    
+    # Parse JSON safely
+    data <- tryCatch(
+      fromJSON(file_path),
+      error = function(e) {
+        message("  ✗ Failed to parse ", file_name)
         NULL
-      })
-
-      if (!is.null(json_data)) {
-        playlists[[length(playlists) + 1]] <- json_data$playlists
       }
+    )
+    
+    if (!is.null(data)) {
+      playlists[[length(playlists) + 1]] <- data$playlists
     }
   }
-
-  return(playlists)
+  
+  playlists
 }
+playlists <- load_playlists(n = 10)
 
-if (file.exists("data/processed_playlists.rds")) {
-  playlists <- readRDS("data/processed_playlists.rds")
-} else {
-  playlists <- load_playlists(n = 10)
-  saveRDS(playlists, "data/processed_playlists.rds")
-}
-
-
-playlists <- load_playlists(n = 10)  
 ```
 
 ```{r}
@@ -219,7 +217,6 @@ The playlist dataset contains 34,443 distinct tracks and 9,754 distinct artists.
 
 ### What are the 5 most popular tracks in the playlist data?
 ```{r}
-
 playlist_df |>
   count(
     track_name,
@@ -305,7 +302,6 @@ The most "danceable" track is Funky Cold Medina.
 ### Which playlist has the longest average track length?
 
 ```{r}
-
 playlist_df |>
   group_by(playlist_name) |>
   summarise(
@@ -451,7 +447,7 @@ Over time, songs have generally grown in popularity. Beginning in the 1980s, how
 
 
 ```{r}
-year_dance <- songs_df |>
+year_dance <- inner_joined_data |>
   group_by(year) |>
   summarise(
     mean_danceability = mean(danceability),
@@ -514,7 +510,6 @@ The 2010s have by far been the most reresented on users playlists.
 
 ### Create a plot of key frequency among songs.
 ```{r}
-library(dplyr)
 library(ggplot2)
 library(RColorBrewer)   # for brewer.pal()
 
@@ -567,9 +562,6 @@ To spotlight the tonal palette of our merged dataset, we spun up a vibrant **ros
 
 ### What are the most popular track lengths? (Are short tracks, long tracks, or something in between most commonly included in user playlists?)
 ```{r}
-library(dplyr)
-library(ggplot2)
-
 # Bin track lengths into categories (in minutes)
 length_bins <- inner_joined_data |>
   mutate(
@@ -612,7 +604,6 @@ The chart compares track length (in minutes) with how often songs appear in play
 
 ### Do higher‑energy songs tend to be more popular on Spotify?
 ```{r}
-
 corr_coef <- inner_joined_data |>
   summarise(r = cor(energy, popularity)) |>
   pull(r)
@@ -661,7 +652,6 @@ There is a noticeable negative linear relationship between a track’s **popular
 ### Does the higher danceability of a song dictate its popularity?
 
 ```{r}
-
 dance_pop <- inner_joined_data |>
   distinct(track_id, .keep_all = TRUE) |>
   select(danceability, popularity)
@@ -688,7 +678,7 @@ We tested whether more danceable songs tend to be more popular. The Spearman cor
 
 To craft the ultimate playlist, we’ve selected A$AP Rocky’s “Fashion Killa” as the anchor track—the stylistic benchmark against which every other song will be measured. In the sections that follow, we’ll perform a data‑driven analysis of tempo, key, mood, and lyrical themes to uncover the tracks that complement its sleek, laid‑back vibe. The goal is a seamlessly flowing set that not only echoes the energy of “Fashion Killa” but also keeps listeners engaged from start to finish.
 
-**Video For Fashion Killa**
+**Video For Fashion Killa** (Clean)
 
 
 ::: center
@@ -926,12 +916,15 @@ This final playlist is the result of all of the analysis befoore. Taking the fiv
 ### Final Playlist
 
 ```{r}
+library(dplyr)
+library(knitr)
 
-sample_tracks <- function(df, n) {
+# Helper to take the top n rows and extract track + artist names
+sample_top <- function(df, n) {
   df |>
-    slice_sample(n = n) |>
+    slice_head(n = n) |>
     select(
-      tn = matches("(?i)track[_ ]?name"), 
+      tn = matches("(?i)track[_ ]?name"),
       an = matches("(?i)artist[_ ]?name")
     ) |>
     rename(
@@ -940,45 +933,20 @@ sample_tracks <- function(df, n) {
     )
 }
 
-set.seed(117)
-
-playlist_df <- bind_rows(
-  sample_tracks(top_dance_cooccur,   3),
-  sample_tracks(similar_songs,       2),
-  sample_tracks(other_songs,         3),
-  sample_tracks(cooccur_songs,       5)
+ultimate_tracks <- bind_rows(
+  sample_top(cooccur_songs,       5),  
+  sample_top(similar_songs,       2),  
+  sample_top(other_songs,         2),  
+  sample_top(similar_songs_acos,  2),  
+  sample_top(top_dance_cooccur,   2)   
 )
-
-playlist_df |>
-  rename(
-    "Track Name"  = track_name,
-    "Artist Name" = artist_name
-  ) |>
-  kable(
-    caption = "Randomly Sampled Tracks for Your New Playlist",
-    align   = c("l", "l")
-  )
-
 
 ```
 
 
 
 ```{r}
-
-song_list <- c(
-  "Ice Ice Baby",
-  "For Everybody",
-  "SexyBack",
-  "Tunnel Vision",
-  "The Drop",
-  "Canal St.",
-  "Angels",
-  "4 Minutes (feat. Justin Timberlake & Timbaland) - feat. Justin Timberlake And Timbaland",
-  "Promise",
-  "No Option",
-  "Skyline To"
-)
+song_list <- ultimate_tracks$track_name
 
 song_popularity <- inner_joined_data |>
   filter(track_name %in% song_list) |>
@@ -988,19 +956,87 @@ song_popularity <- inner_joined_data |>
     Popularity    = first(popularity),
     .groups = "drop"
   ) |>
- 
-  mutate(`Track Name` = factor(track_name, levels = song_list)) |>
+  mutate(
+    `Track Name` = factor(track_name, levels = song_list)
+  ) |>
   arrange(`Track Name`) |>
   select(`Track Name`, `Artist Name`, Popularity)
 
 song_popularity |>
   kable(
-    caption = "Popularity Scores for Selected Tracks",
+    caption = "Ultimate Playlist",
     align   = c("l", "l", "r")
   )
 
 
 ```
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+playlist_features <- ultimate_tracks |>
+  left_join(
+    inner_joined_data |>
+      distinct(track_name, .keep_all = TRUE) |>
+      select(track_name, danceability, tempo, energy),
+    by = "track_name"
+  ) |>
+  mutate(track_num = row_number())
+
+ggplot(playlist_features, aes(x = track_num, y = danceability)) +
+  geom_line(color = "#2C3E50", size = 1.2) +
+  labs(
+    title = "Danceability",
+    x     = "Track Order",
+    y     = "Danceability"
+  ) +
+  scale_x_continuous(breaks = NULL) +
+  theme_minimal(base_size = 14)
+
+ggplot(playlist_features, aes(x = track_num, y = tempo)) +
+  geom_line(color = "#E74C3C", size = 1.2) +
+  labs(
+    title = "Tempo Across Sampled Tracks",
+    x     = "Track Order",
+    y     = "Tempo"
+  ) +
+  scale_x_continuous(breaks = NULL) +
+  theme_minimal(base_size = 14)
+
+ggplot(playlist_features, aes(x = track_num, y = energy)) +
+  geom_line(color = "#8E44AD", size = 1.2) +
+  labs(
+    title = "Energy",
+    x     = "Track Order",
+    y     = "Energy"
+  ) +
+  scale_x_continuous(breaks = NULL) +
+  theme_minimal(base_size = 14)
+
+
+```
+
+To assemble the playlist, each candidate song was scored against several data-driven metrics:
+
+- **Playlist co-occurrence** — frequency with which the track appears alongside our seed songs in public playlists  
+- **Audio-feature similarity** — distance from the seed set across tempo, energy, valence, and timbre  
+- **Acousticness alignment** — consistency in acoustic properties to keep the overall sound cohesive  
+- **Danceability overlap** — shared rhythmic characteristics with the top dance-oriented tracks  
+- **Artist catalog depth** — standout releases that best represent each featured artist  
+
+We also stratified selections by Spotify popularity to showcase both mainstream hits and hidden gems:
+
+- **Popular ≥ 60** — well-known tracks with broad listener reach  (6 are included)
+- **Non-popular < 60** — underrated songs that deserve more play  (6 are included)
+
+This balance keeps the playlist fresh while giving lesser-known tracks a spotlight.
+
+Blending these heuristics produced the **ultimate 12-song playlist** below.
+
+
+**WARNING**  Please listen at your discretion! Some songs may contain explicit material. Unfortunately Spotify does not house clean versions for alot of these songs.
 
 <iframe
   style="border-radius:12px"
