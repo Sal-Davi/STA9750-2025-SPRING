@@ -147,7 +147,6 @@ if (file.exists("data/processed_playlists.rds")) {
 
 
 playlists <- load_playlists(n = 10)  
-
 ```
 
 ```{r}
@@ -159,8 +158,7 @@ strip_spotify_prefix <- function(x) {
   str_extract(x, ".*:.*:(.*)", group = 1)
 }
 playlist_df <- playlists[[1]] |>
-  
-  # 1. Keep just the playlist info + the tracks column
+ 
   mutate(
     playlist_name      = name,
     playlist_id        = strip_spotify_prefix(pid),
@@ -271,7 +269,7 @@ playlist_df |>
 
 
 ```
-The song "One Dance" by Drake, does not appear in the songs characteristics data "songs_df".
+The song "One Dance" by Drake does not appear in the songs characteristics data.
 
 ### According to the song characteristics data, what is the most “danceable” track? How often does it appear in a playlist?
 ```{r}
@@ -302,7 +300,7 @@ top_song_table |>
 
 
 ```
-The most "danceable" track, is Funky Cold Medina.
+The most "danceable" track is Funky Cold Medina.
 
 ### Which playlist has the longest average track length?
 
@@ -333,7 +331,7 @@ playlist_df |>
     `Artist Name`   = artist_name
   ) |>
   kable(
-    caption = "Transit Service With Most UPT In 2023",
+    caption = "",
     align   = "c"
   )
 
@@ -366,11 +364,11 @@ playlist_df |>
   )
 
 ```
-The most popular playlist on Spotify is "Tangled", with 1038 followers.
+The most popular playlist on Spotify is "Tangled", with 1,038 followers.
 
 ## Visually Identifying Characteristics of Popular Songs
 
-Inner-joiing both the song characteristics & playlist information datasets. Dataframe will be called inner_joined_data.
+Inner joining both the song characteristics & playlist datasets. Dataframe will be called inner_joined_data.
 ```{r}
 inner_joined_data <- songs_df |>
   rename(track_id = id) |>
@@ -427,7 +425,6 @@ year_popularity <- inner_joined_data |>
   arrange(desc(median_popularity))
 
 
-# 3. Plot (ticks every 3 years on the x‑axis)
 year_popularity |>
   ggplot(aes(x = year, y = median_popularity)) +
   geom_point(size = 3, color = "#2C3E50") +
@@ -573,7 +570,7 @@ To spotlight the tonal palette of our merged dataset, we spun up a vibrant **ros
 library(dplyr)
 library(ggplot2)
 
-# 1. Bin track lengths into categories (in minutes)
+# Bin track lengths into categories (in minutes)
 length_bins <- inner_joined_data |>
   mutate(
     length_min = duration / 60000,
@@ -594,8 +591,6 @@ length_freq <- length_bins |>
   count(length_bin, name = "freq") |>
   arrange(desc(freq))
 
-
-# 3. Plot the distribution as a bar chart
 length_freq |>
   ggplot(aes(x = length_bin, y = freq)) +
   geom_col(fill = "#1ABC9C", width = 0.7) +
@@ -687,7 +682,7 @@ dance_pop |>
   theme_minimal(base_size = 14)
 
 ```
-Above, we dive into if a song has a higher dancebaility can it also have more popularity? By computing a spearman correlation coefficient, the results show with a 0.12 that there is no association with one another.
+We tested whether more danceable songs tend to be more popular. The Spearman correlation coefficient is 0.12, indicating a negligible relationship; danceability does not meaningfully predict popularity in this dataset. **Popularity is therefore most likely influenced by other factors such as artist visibility, marketing, or lyrical appeal—rather than just how dance-friendly a track is.**
 
 ## Building The Ultimate Playlist 
 
@@ -758,7 +753,7 @@ fk_info <- inner_joined_data |>
 fk_key   <- fk_info$fk_key
 fk_tempo <- fk_info$fk_tempo
 
-# 2. Find other tracks in that same key & within ±5 BPM, and include popularity
+# 
 similar_songs <- inner_joined_data |>
   filter(
     key == fk_key,
@@ -795,6 +790,10 @@ similar_songs |>
 
 ### Heuristic 3: What other songs were released by the same artist?
 ```{r}
+library(dplyr)
+library(knitr)
+
+# 1. Find the artist of “Fashion Killa”
 anchor_artist <- inner_joined_data |>
   filter(track_name == "Fashion Killa") |>
   pull(artist_name) |>
@@ -802,21 +801,22 @@ anchor_artist <- inner_joined_data |>
 
 other_songs <- inner_joined_data |>
   filter(
-    artist_name == anchor_artist,        # same artist
-    track_name   != "Fashion Killa"      # not the anchor itself
+    artist_name == anchor_artist,
+    track_name   != "Fashion Killa"
   ) |>
-  distinct(track_name) |>    # one row per song
-  arrange(track_name)                    # sort alphabetically
+  distinct(track_name, artist_name) |>   # keep both columns
+  arrange(track_name)
 
 other_songs |>
-  select(track_name) |>
   rename(
-    "Track Name" = track_name,
+    "Track Name"  = track_name,
+    "Artist Name" = artist_name
   ) |>
   kable(
-    caption = "Other Songs By A$AP Rocky",
-    align = c("l")
+    caption = "Other Songs by the Same Artist as “Fashion Killa”",
+    align   = c("l", "l")
   )
+
 
 ```
 
@@ -841,7 +841,7 @@ candidates <- inner_joined_data |>
   ) |>
   distinct(track_id, .keep_all = TRUE)
 
-similar_songs <- candidates |>
+similar_songs_acos <- candidates |>
   mutate(
     distance = sqrt(
       (acousticness - ac_fk)^2 +
@@ -863,7 +863,7 @@ similar_songs <- candidates |>
     distance
   )
 
-similar_songs |>
+similar_songs_acos |>
   rename(
     "Track Name"   = track_name,
     "Artist Name"  = artist_name,
@@ -919,3 +919,96 @@ top_dance_cooccur |>
 
 
 ```
+
+
+This final playlist is the result of all of the analysis befoore. Taking the five heuristic's into this final list, we will create a list that includes a mixture of popular and non-popular songs. We measured non popular songs by those that have <65 score in the dataset. 
+
+### Final Playlist
+
+```{r}
+
+sample_tracks <- function(df, n) {
+  df |>
+    slice_sample(n = n) |>
+    select(
+      tn = matches("(?i)track[_ ]?name"), 
+      an = matches("(?i)artist[_ ]?name")
+    ) |>
+    rename(
+      track_name  = tn,
+      artist_name = an
+    )
+}
+
+set.seed(117)
+
+playlist_df <- bind_rows(
+  sample_tracks(top_dance_cooccur,   3),
+  sample_tracks(similar_songs,       2),
+  sample_tracks(other_songs,         3),
+  sample_tracks(cooccur_songs,       5)
+)
+
+playlist_df |>
+  rename(
+    "Track Name"  = track_name,
+    "Artist Name" = artist_name
+  ) |>
+  kable(
+    caption = "Randomly Sampled Tracks for Your New Playlist",
+    align   = c("l", "l")
+  )
+
+
+```
+
+
+
+```{r}
+
+song_list <- c(
+  "Ice Ice Baby",
+  "For Everybody",
+  "SexyBack",
+  "Tunnel Vision",
+  "The Drop",
+  "Canal St.",
+  "Angels",
+  "4 Minutes (feat. Justin Timberlake & Timbaland) - feat. Justin Timberlake And Timbaland",
+  "Promise",
+  "No Option",
+  "Skyline To"
+)
+
+song_popularity <- inner_joined_data |>
+  filter(track_name %in% song_list) |>
+  group_by(track_name) |>
+  summarise(
+    `Artist Name` = first(artist_name),
+    Popularity    = first(popularity),
+    .groups = "drop"
+  ) |>
+ 
+  mutate(`Track Name` = factor(track_name, levels = song_list)) |>
+  arrange(`Track Name`) |>
+  select(`Track Name`, `Artist Name`, Popularity)
+
+song_popularity |>
+  kable(
+    caption = "Popularity Scores for Selected Tracks",
+    align   = c("l", "l", "r")
+  )
+
+
+```
+
+<iframe
+  style="border-radius:12px"
+  src="https://open.spotify.com/embed/playlist/0Q5uNz2bpAlrXoRc8wkSMl?utm_source=generator"
+  width="100%"
+  height="352"
+  frameborder="0"
+  allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+  loading="lazy">
+</iframe>
+
