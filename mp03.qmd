@@ -732,9 +732,8 @@ cooccur_songs |>
 
 
 
-### Heuristic 2: What other songs have a similar tempo?
+### Heuristic 2: What other songs have a similar tempo & key?
 ```{r}
-
 fk_info <- inner_joined_data |>
   filter(track_name == "Fashion Killa") |>
   slice_head(n = 1) |>
@@ -780,10 +779,8 @@ similar_songs |>
 
 ### Heuristic 3: What other songs were released by the same artist?
 ```{r}
-library(dplyr)
-library(knitr)
 
-# 1. Find the artist of “Fashion Killa”
+# Find the artist of “Fashion Killa”
 anchor_artist <- inner_joined_data |>
   filter(track_name == "Fashion Killa") |>
   pull(artist_name) |>
@@ -813,7 +810,6 @@ other_songs |>
 
 ### Heuristic 4: What other songs were released in the same year and have similar levels of acousticness, danceability, etc.?
 ```{r}
-
 fk <- inner_joined_data |>
   filter(track_name == "Fashion Killa") |>
   slice_head(n = 1)
@@ -913,13 +909,9 @@ top_dance_cooccur |>
 
 This final playlist is the result of all of the analysis befoore. Taking the five heuristic's into this final list, we will create a list that includes a mixture of popular and non-popular songs. We measured non popular songs by those that have <65 score in the dataset. 
 
-### Final Playlist
+# Final Playlist
 
 ```{r}
-library(dplyr)
-library(knitr)
-
-# Helper to take the top n rows and extract track + artist names
 sample_top <- function(df, n) {
   df |>
     slice_head(n = n) |>
@@ -973,9 +965,6 @@ song_popularity |>
 
 
 ```{r}
-library(dplyr)
-library(ggplot2)
-
 playlist_features <- ultimate_tracks |>
   left_join(
     inner_joined_data |>
@@ -1021,14 +1010,14 @@ ggplot(playlist_features, aes(x = track_num, y = energy)) +
 To assemble the playlist, each candidate song was scored against several data-driven metrics:
 
 - **Playlist co-occurrence** — frequency with which the track appears alongside our seed songs in public playlists  
-- **Audio-feature similarity** — distance from the seed set across tempo, energy, valence, and timbre  
+- **Tempo-Key similarity** — songs that contain similar characteristics in tempo and key  
 - **Acousticness alignment** — consistency in acoustic properties to keep the overall sound cohesive  
 - **Danceability overlap** — shared rhythmic characteristics with the top dance-oriented tracks  
-- **Artist catalog depth** — standout releases that best represent each featured artist  
+- **Artist catalog depth** — releases that best represent each featured artist (mostly their best work)  
 
 We also stratified selections by Spotify popularity to showcase both mainstream hits and hidden gems:
 
-- **Popular ≥ 60** — well-known tracks with broad listener reach  (6 are included)
+- **Popular ≥ 60** — well-known tracks with broad listener base (6 are included)
 - **Non-popular < 60** — underrated songs that deserve more play  (6 are included)
 
 This balance keeps the playlist fresh while giving lesser-known tracks a spotlight.
