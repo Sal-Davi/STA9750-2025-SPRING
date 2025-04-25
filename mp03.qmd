@@ -403,7 +403,7 @@ pop_cutoff <- 70
 
 
 ```
-We conducted a Pearson correlation analysis to examine whether a song’s **popularity** score is related to its **playlist position**. The resulting correlation coefficient of **0.49** indicates a **moderate positive relationship**: in general, more‑popular songs tend to appear earlier in playlists. However, the correlation is far from perfect, so highly popular tracks can still show up infrequently—or later—on certain playlists.
+We conducted a Pearson correlation analysis to examine whether a song’s popularity score is related to its playlist position. The resulting correlation coefficient of 0.49 indicates a moderate positive relationship: in general, more‑popular songs tend to appear earlier in playlists. However, the correlation is far from perfect, so highly popular tracks can still show up infrequently—or later—on certain playlists.
 
 
 ### In what year were the most popular songs released?
@@ -465,7 +465,7 @@ year_dance |>
 ```
 
 
-The chart plots average **danceability** (0–1 scale) in 25‑year release intervals. Danceability climbs steadily from the 1950s, reaching its highest point in 2020 during the 2010s, indicating that songs have become progressively more dance‑friendly over time.The value was at .673.
+The chart plots average danceability in 25‑year release intervals. Danceability climbs steadily from the 1950s, reaching its highest point in 2020 during the 2010s, indicating that songs have become progressively more dance‑friendly over time.The value was at .673.
 
 ### Which decade is most represented on user playlists?
 ```{r}
@@ -556,7 +556,7 @@ ggplot(key_counts, aes(x = key_name, y = num_tracks, fill = key_name)) +
   )
 
 ```
-To spotlight the tonal palette of our merged dataset, we spun up a vibrant **rose (polar bar) chart** that fans out each musical key around a full 360° circle. Every wedge represents one key it displayshow many distinct tracks are in that key, giving you an instant feel for which tonal centers dominate our playlists. Right away you can see that **C steals the crown—spiking the highest with 1,185 tracks—while neighboring keys like C♯/D♭ and D trail closely behind.** 
+To spotlight the tonal palette of our merged dataset, we spun up a vibrant rose (polar bar) chart that fans out each musical key around a full 360° circle. Every wedge represents one key it displayshow many distinct tracks are in that key, giving you an instant feel for which tonal centers dominate our playlists. Right away you can see that C is the highest with 1,185 tracks—while neighboring keys like C♯/D♭ and D trail closely behind. 
 
 ### What are the most popular track lengths? (Are short tracks, long tracks, or something in between most commonly included in user playlists?)
 ```{r}
@@ -621,7 +621,7 @@ inner_joined_data |>
 
 
 ```
-A Spearman correlation of **0.02** between a track’s **energy** and its **popularity** shows virtually no systematic connection—amping up the energy does not, on its own, catapult a song onto more playlists. The coefficient is so close to zero that random variation could overwhelm any real effect, hinting (if anything) at a faintly opposite trend. In practice, elements like melody, marketing reach, and cultural zeitgeist likely play a much larger role in determining whether a track catches fire with listeners.
+A Spearman correlation of 0.02 between a track’s energy and its popularity shows virtually no systematic connection—amping up the energy does not, on its own, catapult a song onto more playlists. The coefficient is so close to zero that random variation could overwhelm any real effect, hinting (if anything) at a faintly opposite trend. In practice, elements like melody, marketing reach, and cultural zeitgeist likely play a much larger role in determining whether a track catches fire with listeners.
 
 
 ### Do more acoustic songs tend to be more or less popular on Spotify?
@@ -645,7 +645,7 @@ inner_joined_data |>
   )
 
 ```
-There is a noticeable negative linear relationship between a track’s **popularity** and its **acousticness**—the more acoustic a song sounds, the less likely it is to rack up high popularity scores. Both metrics are right‑skewed, meaning most songs cluster at the “high‑popularity / low‑acousticness” end of the spectrum. In other words, if you want your next release to land on more user‑generated playlists, consider trimming back the unplugged, acoustic vibe and leaning into a more produced sound.
+There is a noticeable negative linear relationship between a track’s popularity and its acousticness—the more acoustic a song sounds, the less likely it is to rack up high popularity scores. Both metrics are right‑skewed, meaning most songs cluster at the “high‑popularity / low‑acousticness” end of the spectrum. In other words, if you want your next release to land on more user‑generated playlists, consider trimming back the unplugged, acoustic vibe and leaning into a more produced sound.
 
 ### Does the higher danceability of a song dictate its popularity?
 
@@ -670,7 +670,7 @@ dance_pop |>
   theme_minimal(base_size = 14)
 
 ```
-We tested whether more danceable songs tend to be more popular. The Spearman correlation coefficient is 0.12, indicating a negligible relationship; danceability does not meaningfully predict popularity in this dataset. **Popularity is therefore most likely influenced by other factors such as artist visibility, marketing, or lyrical appeal—rather than just how dance-friendly a track is.**
+We tested whether more danceable songs tend to be more popular. The Spearman correlation coefficient is 0.12, indicating a negligible relationship; danceability does not meaningfully predict popularity in this dataset. Popularity is therefore most likely influenced by other factors such as artist visibility, marketing, or lyrical appeal—rather than just how dance-friendly a track is.
 
 ## Building The Ultimate Playlist 
 
