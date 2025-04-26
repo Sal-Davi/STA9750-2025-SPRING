@@ -381,7 +381,6 @@ track_stats <- inner_joined_data |>
 
 #Pearson correlation between play count and popularity
 corr_coef <- cor(track_stats$play_count, track_stats$popularity)
-print(paste("Pearson correlation:", round(corr_coef, 3)))
 
 
 #Scatterplot
@@ -614,8 +613,8 @@ inner_joined_data |>
   labs(
     title    = "Spotify Popularity vs. Song Energy",
     subtitle = paste0("Pearson r = ", round(corr_coef, 2)),
-    x        = "Energy (0–1)",
-    y        = "Spotify Popularity (0–100)"
+    x        = "Energy",
+    y        = "Spotify Popularity"
   ) +
   theme_minimal(base_size = 14)
 
@@ -634,8 +633,8 @@ inner_joined_data |>
 
   labs(
     title = "Spotify Popularity vs. Acousticness",
-    x     = "Acousticness (0–1)",
-    y     = "Popularity (0–100)"
+    x     = "Acousticness",
+    y     = "Popularity"
   ) +
   theme_minimal(base_size = 14) +
 
@@ -664,8 +663,8 @@ dance_pop |>
   labs(
     title    = "Does Higher Danceability Predict Popularity?",
     subtitle = paste0("Pearson r = ", round(corr_coef, 2)),
-    x        = "Danceability (0–1)",
-    y        = "Spotify Popularity (0–100)"
+    x        = "Danceability",
+    y        = "Spotify Popularity"
   ) +
   theme_minimal(base_size = 14)
 
