@@ -604,7 +604,6 @@ The chart compares track length (in minutes) with how often songs appear in play
 corr_coef <- inner_joined_data |>
   summarise(r = cor(energy, popularity)) |>
   pull(r)
-print(paste("Pearson correlation:", round(corr_coef, 3)))
 
 inner_joined_data |>
   ggplot(aes(x = energy, y = popularity)) +
@@ -654,7 +653,6 @@ dance_pop <- inner_joined_data |>
   select(danceability, popularity)
 
 corr_coef <- cor(dance_pop$danceability, dance_pop$popularity)
-print(paste("Pearson correlation:", round(corr_coef, 3)))
 
 dance_pop |>
   ggplot(aes(x = danceability, y = popularity)) +
