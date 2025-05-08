@@ -229,18 +229,18 @@ results_2020_clean <- results_2020_all |>
     state
   ) |>
   rename(
-    trump_republican_2020     = donald_trump_republican,
-    `trump_republican_%_2020` = donald_trump_republican_2,
-    biden_democratic_2020     = joe_biden_democratic,
+    trump_votes_2020     = donald_trump_republican,
+    `%_for_trump_2020` = donald_trump_republican_2,
+    votes_for_biden_2020     = joe_biden_democratic,
     `biden_democratic_%_2020` = joe_biden_democratic_2,
     other_parties_2020        = various_candidates_other_parties,
-    `other_parties_%_2020`    = various_candidates_other_parties_2,
-    `margin_%_2020`           = margin_2,
+    `%_for_others_2020`    = various_candidates_other_parties_2,
+    `winning_%_2020`           = margin_2,
     margin_2020               = margin,
-    total_2020                = total
+    total_during_2020                = total
   ) |>
   filter(
-    trump_republican_2020 != "#",
+    trump_votes_2020 != "#",
     county != "Totals"
   ) |>
   distinct(state, county, .keep_all = TRUE)
@@ -262,18 +262,18 @@ results_2024_clean <- results_2024_all |>
     state
   ) |>
   rename(
-    trump_republican_2024     = donald_trump_republican,
-    `trump_republican_%_2024` = donald_trump_republican_2,
-    harris_democratic_2024    = kamala_harris_democratic,
-    `harris_democratic_%_2024`= kamala_harris_democratic_2,
+    trump_votes_2024     = donald_trump_republican,
+    `trump_got_2024` = donald_trump_republican_2,
+    votes_harris_got_2024    = kamala_harris_democratic,
+    `%_for_harris_2024`= kamala_harris_democratic_2,
     other_parties_2024        = various_candidates_other_parties,
-    `other_parties_%_2024`    = various_candidates_other_parties_2,
-    `margin_%_2024`           = margin_2,
+    `%_for_others_2024`    = various_candidates_other_parties_2,
+    `winning%_in_2024`           = margin_2,
     margin_2024               = margin,
-    total_2024                = total
+    total_during_2024                = total
   ) |>
   filter(
-    trump_republican_2024 != "#",
+    trump_votes_2024  != "#",
     county != "Totals"
   ) |>
   distinct(state, county, .keep_all = TRUE)
@@ -314,7 +314,7 @@ library(kableExtra)
 red <- "#B22234"
 
 full_data |>
-  mutate(trump_votes_2024 = as.numeric(gsub(",", "", trump_republican_2024))) |>
+  mutate(trump_votes_2024 = as.numeric(gsub(",", "", trump_votes_2024 ))) |>
   arrange(desc(trump_votes_2024)) |>
   slice_head(n = 5) |>
   st_drop_geometry() |>
@@ -342,8 +342,8 @@ blue <- "#1E90FF"
 # 1) Compute top 5 counties by Biden share in 2020, keeping numeric share for plotting
 top5_biden_2020 <- full_data |>
   mutate(
-    biden_votes_2020 = as.numeric(gsub(",", "", biden_democratic_2020)),
-    total_votes_2020 = as.numeric(gsub(",", "", total_2020)),
+    biden_votes_2020 = as.numeric(gsub(",", "", votes_for_biden_2020)),
+    total_votes_2020 = as.numeric(gsub(",", "", total_during_2020)),
     biden_share_2020 = biden_votes_2020 / total_votes_2020
   ) |>
   st_drop_geometry() |>
@@ -392,10 +392,10 @@ red <- "#B22234"
 # 1) Compute shift and pull top 5 counties
 top5_trump_shift <- full_election |>
   mutate(
-    votes_trump_2020   = as.numeric(gsub(",", "", trump_republican_2020)),
-    votes_trump_2024   = as.numeric(gsub(",", "", trump_republican_2024)),
-    total_votes_2020   = as.numeric(gsub(",", "", total_2020)),
-    total_votes_2024   = as.numeric(gsub(",", "", total_2024)),
+    votes_trump_2020   = as.numeric(gsub(",", "", trump_votes_2020)),
+    votes_trump_2024   = as.numeric(gsub(",", "", trump_votes_2024 )),
+    total_votes_2020   = as.numeric(gsub(",", "", total_during_2020)),
+    total_votes_2024   = as.numeric(gsub(",", "", total_during_2024)),
     share20            = votes_trump_2020 / total_votes_2020,
     share24            = votes_trump_2024 / total_votes_2024,
     shift_toward_trump = share24 - share20
@@ -439,8 +439,8 @@ blue <- "#1E90FF"
 
 results_2020_clean |>
   mutate(
-    biden_votes = as.numeric(str_remove_all(biden_democratic_2020, ",")),
-    total20     = as.numeric(str_remove_all(total_2020, ","))
+    biden_votes = as.numeric(str_remove_all(votes_for_biden_2020, ",")),
+    total20     = as.numeric(str_remove_all(total_during_2020, ","))
   ) |>
   group_by(state) |>
   summarize(
@@ -450,8 +450,8 @@ results_2020_clean |>
   inner_join(
     results_2024_clean |>
       mutate(
-        harris_votes = as.numeric(str_remove_all(harris_democratic_2024, ",")),
-        total24      = as.numeric(str_remove_all(total_2024, ","))
+        harris_votes = as.numeric(str_remove_all(votes_harris_got_2024, ",")),
+        total24      = as.numeric(str_remove_all(total_during_2024, ","))
       ) |>
       group_by(state) |>
       summarize(
@@ -523,7 +523,7 @@ library(kableExtra)
 # Compute and display the top 5 counties by voter density in 2020
 full_data |>
   mutate(
-    total_votes_2020   = as.numeric(gsub(",", "", total_2020)),
+    total_votes_2020   = as.numeric(gsub(",", "", total_during_2020)),
     area_km2           = set_units(st_area(geometry), km^2) |> drop_units(),
     voter_density_2020 = total_votes_2020 / area_km2
   ) |>
@@ -545,24 +545,17 @@ The county with the most voter density is San Francisco, in California. It has a
 
 ##  Which county had the largest increase in voter turnout in 2024?
 ```{r}
-library(dplyr)
-library(sf)
-library(ggplot2)
-library(kableExtra)
-library(scales)
 
-# Prepare the top 5 table and numeric data for plotting
 top5_turnout_increase <- full_data |>
   mutate(
-    turnout_2020   = as.numeric(gsub(",", "", total_2020)),
-    turnout_2024   = as.numeric(gsub(",", "", total_2024)),
+    turnout_2020   = as.numeric(gsub(",", "", total_during_2020)),
+    turnout_2024   = as.numeric(gsub(",", "", total_during_2024)),
     turnout_change = turnout_2024 - turnout_2020
   ) |>
   slice_max(order_by = turnout_change, n = 5, with_ties = TRUE) |>
   st_drop_geometry() |>
   mutate( Increase = turnout_change )  
 
-# Render the table
 top5_turnout_increase |>
   transmute(
     County         = county,
@@ -576,7 +569,6 @@ top5_turnout_increase |>
   row_spec(0, bold = TRUE) |>
   column_spec(1:2, bold = TRUE)
 
-# And now the bar chart
 ggplot(top5_turnout_increase, aes(
     x = reorder(county, turnout_change),
     y = turnout_change,
@@ -630,21 +622,21 @@ library(units)
 # 1) Compute both Trump and Harris shifts and convert to sf
 shift_data <- full_data |>
   mutate(
-    # parse vote totals
-    votes_trump_2020   = as.numeric(str_remove_all(trump_republican_2020, ",")),
-    votes_trump_2024   = as.numeric(str_remove_all(trump_republican_2024, ",")),
-    votes_harris_2024  = as.numeric(str_remove_all(harris_democratic_2024,  ",")),
-    votes_biden_2020   = as.numeric(str_remove_all(biden_democratic_2020,    ",")),
-    total_2020         = as.numeric(str_remove_all(total_2020,               ",")),
-    total_2024         = as.numeric(str_remove_all(total_2024,               ",")),
-    # compute shares
-    pct_trump_20       = votes_trump_2020 / total_2020,
-    pct_trump_24       = votes_trump_2024 / total_2024,
-    pct_biden_20       = votes_biden_2020 / total_2020,
-    pct_harris_24      = votes_harris_2024 / total_2024,
+   
+    votes_trump_2020   = as.numeric(str_remove_all(trump_votes_2020, ",")),
+    votes_trump_2024   = as.numeric(str_remove_all(trump_votes_2024 , ",")),
+    votes_harris_2024  = as.numeric(str_remove_all(votes_harris_got_2024,  ",")),
+    votes_biden_2020   = as.numeric(str_remove_all(votes_for_biden_2020,    ",")),
+    total_during_2020         = as.numeric(str_remove_all(total_during_2020,               ",")),
+    total_during_2024         = as.numeric(str_remove_all(total_during_2024,               ",")),
+    
+    percent_for_trump_20       = votes_trump_2020 / total_during_2020,
+    percent_for_trump_24      = votes_trump_2024 / total_during_2024,
+    percent_for_biden_20       = votes_biden_2020 / total_during_2020,
+    percent_for_harris_24      = votes_harris_2024 / total_during_2024,
     # compute shifts
-    shift_trump        = pct_trump_24 - pct_trump_20,
-    shift_harris       = pct_harris_24 - pct_biden_20
+    shift_trump        = percent_for_trump_24 - percent_for_trump_20,
+    shift_harris       = percent_for_harris_24  - percent_for_biden_20
   ) |>
   st_as_sf()
 
