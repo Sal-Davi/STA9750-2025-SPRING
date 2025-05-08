@@ -398,7 +398,6 @@ library(kableExtra)
 
 red <- "#B22234"
 
-# 1) Compute Trump share shift using the correct column names
 top_trump_shift <- full_data |>
   mutate(
     votes20 = as.numeric(gsub(",", "", trump_votes_2020)),
@@ -419,10 +418,10 @@ top_trump_shift <- full_data |>
     `Shift Toward Trump (pp)`= percent(shift,  accuracy = 0.01)
   )
 
-# 2) Count rows for styling
+
 n_rows <- nrow(top_trump_shift)
 
-# 3) Render as a red‐highlighted HTML table
+
 top_trump_shift |>
   kable("html", caption = "County(ies) with Largest Shift Toward Trump (2020→2024)") |>
   kable_styling(bootstrap_options = c("condensed", "hover"),
