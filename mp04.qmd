@@ -1,0 +1,656 @@
+---
+title: "The Political Shift In America"
+author: "Salvatore Davi"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    css: |
+      body { background-color: #F5F5DC; }
+    code-fold: true       # <— enable folding
+    code-summary: "Show the code"
+execute:
+  warning: false
+  error:   false
+  message: false
+---
+
+# Introduction
+
+The United States’ 2024 presidential election was one of the most hotly contested in recent history, but many of its outcomes can be traced back to shifts that began in 2020.  Over the past four years, economic, social, and cultural priorities have realigned voters’ political affiliations at both the national and local levels.  As a result, the Democratic Party now faces several significant challenges in retaining support in key regions and rebuilding broad‐based coalitions.  In this project, we examine those county‐level vote‐share changes between 2020 and 2024 using Census shapefiles and Wikipedia‐sourced election data.  By mapping each county’s shift and drawing arrows from its geographic centroid—scaled and colored to show both magnitude and direction—we uncover the granular patterns of political realignment that will shape the next chapter of American politics.
+
+![The Ultimate Playlist!](docs/trump-harris-pharma-side-by-side.webp)
+
+# Datasets
+
+For this project, we assembled a county-level dataset tracking U.S. presidential voting patterns in 2020 and 2024, along with a corresponding county shapefile. For each of the 3,100+ counties, we scraped total votes cast, party-specific tallies for the top two candidates, and “other” votes, then joined these results to a detailed Census shapefile. From there, we derived key metrics—vote shares, turnout changes, and geographic shifts in support—showing how support for each of the three main candidates (Biden, Trump, and Harris) evolved between the two elections. The result is a rich spatial database for mapping how each community’s political preferences have moved over time, from raw vote counts down to per-square-kilometer voter density.
+
+
+
+## US County ShapeFiles
+```{r}
+library(stringr)
+library(dplyr)
+library(knitr)
+c("rvest", "httr2") |>
+  lapply(function(pkg) {
+    if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  })
+
+# Ensure our data directory exists
+data_dir <- "data/mp04"
+invisible(
+  data_dir |>
+    (\(d) {
+      if (!dir.exists(d)) {
+        dir.create(d, recursive = TRUE)
+        message("Created directory: ", d)
+      } else {
+        message("Directory already exists: ", d)
+      }
+    })()
+)
+
+# downloading the shapefile
+resolutions <- c("500k", "5m", "20m")
+base_url    <- "https://www2.census.gov/geo/tiger/GENZ2024/shp/"
+
+resolutions |>
+  (\(res_list) {
+    for (res in res_list) {
+      filename    <- sprintf("cb_2024_us_county_%s.zip", res)
+      local_file  <- file.path(data_dir, filename)
+      download_url <- paste0(base_url, filename)
+
+      if (file.exists(local_file)) {
+        message("Already have: ", local_file)
+        success <- TRUE
+      } else {
+        message("Downloading: ", download_url)
+        success <- tryCatch({
+          download.file(download_url, local_file, mode = "wb")
+          TRUE
+        }, error = function(e) {
+          message("Download failed: ", e$message)
+          FALSE
+        })
+
+        if (isTRUE(success)) {
+          message("Downloaded to: ", local_file)
+          extract_dir <- file.path(data_dir, paste0("county_", res))
+          unzip(local_file, exdir = extract_dir)
+          message("Extracted to: ", extract_dir)
+        }
+      }
+
+      if (isTRUE(success)) break
+      if (identical(res, tail(res_list, 1))) {
+        message("All resolution downloads failed.")
+      }
+    }
+  })()
+
+
+```
+
+
+## 2024 County Election Results
+```{r}
+library(scales)
+library(ggplot2)
+library(kableExtra)
+library(readr)
+library(here)
+library(sf)
+library(httr2)
+library(rvest)
+library(purrr)
+library(janitor)
+get_county_results_2024 <- function(state_input) {
+  state_slug <- str_replace_all(state_input, " ", "_")
+  wiki_url   <- paste0(
+    "https://en.wikipedia.org/wiki/2024_United_States_presidential_election_in_",
+    state_slug
+  )
+  
+  # fetch and parse the page
+  doc <- request(wiki_url) |>
+    req_perform() |>
+    resp_body_html()
+  
+  # grab all HTML tables
+  table_list <- doc |>
+    html_elements("table") |>
+    html_table()
+  county_data <- table_list |>
+    keep(~ any(str_detect(names(.x),
+                          regex("County|Parish|Borough", ignore_case = TRUE)))) |>
+    pluck(1)
+  
+  # handle missing or empty tables
+  if (is.null(county_data) || nrow(county_data) == 0) {
+    message("No county‐level data for: ", state_input)
+    return(NULL)
+  }
+  
+  # dedupe columns
+  county_data <- county_data |>
+    clean_names()
+  
+  if (any(duplicated(names(county_data)))) {
+    message("Making duplicate columns unique for: ", state_input)
+    names(county_data) <- make.unique(names(county_data))
+  }
+  
+  county_data |>
+    mutate(
+      across(where(is.character), str_squish),
+      state = state_input
+    )
+}
+
+all_states     <- state.name
+state_results  <- lapply(all_states, get_county_results_2024)
+results_2024  <- Filter(Negate(is.null), state_results)
+
+```
+
+## 2020 County Election Results
+```{r}
+collect_state_counties_2020 <- function(st) {
+  st_code   <- str_replace_all(st, " ", "_")
+  page_link <- paste0(
+    "https://en.wikipedia.org/wiki/2020_United_States_presidential_election_in_",
+    st_code
+  )
+  
+  doc  <- request(page_link) |>
+    req_perform()     |>
+    resp_body_html()
+  tbls <- doc |>
+    html_elements("table") |>
+    html_table()
+  
+  cty_tbl <- tbls |>
+    keep(~ any(str_detect(names(.x),
+                          regex("County|Parish|Borough",
+                                ignore_case = TRUE)))) |>
+    pluck(1)
+  
+  # if missing or empty, warn and exit
+  if (is.null(cty_tbl) || nrow(cty_tbl) == 0) {
+    message("No county‐level data for: ", st)
+    return(NULL)
+  }
+  
+  cty_tbl <- cty_tbl |>
+    clean_names()
+  if (any(duplicated(names(cty_tbl)))) {
+    message("Renaming duplicates in: ", st)
+    names(cty_tbl) <- make.unique(names(cty_tbl))
+  }
+  
+  cty_tbl |>
+    mutate(
+      across(where(is.character), str_squish),
+      state = st
+    )
+}
+
+us_states       <- state.name
+raw_results_20  <- purrr::map(us_states, collect_state_counties_2020)
+results_2020    <- purrr::compact(raw_results_20)
+
+
+```
+
+## Combining Shapefile, Election Results
+```{r}
+library(dplyr)
+results_2020_all <- bind_rows(results_2020)
+
+# removing excess columns
+results_2020_clean <- results_2020_all |>
+  select(
+    county,
+    donald_trump_republican,
+    donald_trump_republican_2,
+    joe_biden_democratic,
+    joe_biden_democratic_2,
+    various_candidates_other_parties,
+    various_candidates_other_parties_2,
+    margin,
+    margin_2,
+    total,
+    state
+  ) |>
+  rename(
+    trump_republican_2020     = donald_trump_republican,
+    `trump_republican_%_2020` = donald_trump_republican_2,
+    biden_democratic_2020     = joe_biden_democratic,
+    `biden_democratic_%_2020` = joe_biden_democratic_2,
+    other_parties_2020        = various_candidates_other_parties,
+    `other_parties_%_2020`    = various_candidates_other_parties_2,
+    `margin_%_2020`           = margin_2,
+    margin_2020               = margin,
+    total_2020                = total
+  ) |>
+  filter(
+    trump_republican_2020 != "#",
+    county != "Totals"
+  ) |>
+  distinct(state, county, .keep_all = TRUE)
+
+results_2024_all <- bind_rows(results_2024)
+
+results_2024_clean <- results_2024_all |>
+  select(
+    county,
+    donald_trump_republican,
+    donald_trump_republican_2,
+    kamala_harris_democratic,
+    kamala_harris_democratic_2,
+    various_candidates_other_parties,
+    various_candidates_other_parties_2,
+    margin,
+    margin_2,
+    total,
+    state
+  ) |>
+  rename(
+    trump_republican_2024     = donald_trump_republican,
+    `trump_republican_%_2024` = donald_trump_republican_2,
+    harris_democratic_2024    = kamala_harris_democratic,
+    `harris_democratic_%_2024`= kamala_harris_democratic_2,
+    other_parties_2024        = various_candidates_other_parties,
+    `other_parties_%_2024`    = various_candidates_other_parties_2,
+    `margin_%_2024`           = margin_2,
+    margin_2024               = margin,
+    total_2024                = total
+  ) |>
+  filter(
+    trump_republican_2024 != "#",
+    county != "Totals"
+  ) |>
+  distinct(state, county, .keep_all = TRUE)
+
+
+shp_file      <- list.files("data/mp04", pattern = "\\.shp$", recursive = TRUE, full.names = TRUE)[1]
+county_shapes <- st_read(shp_file, quiet = TRUE)
+
+shapes_clean <- county_shapes %>%
+  rename(
+    county = NAME,
+    state  = STATE_N
+  ) %>%
+  select(
+    county, state, geometry
+  )
+
+# Combine  2020 & 2024 tables 
+full_election <- inner_join(
+  results_2020_clean,
+  results_2024_clean,
+  by = c("county", "state")
+)
+
+full_data <- shapes_clean %>%
+  left_join(full_election, by = c("county", "state"))
+
+```
+
+# Analysis
+
+## Which county or counties cast the most votes for Trump in 2024?
+```{r}
+library(dplyr)
+library(sf)
+library(kableExtra)
+
+red <- "#B22234"
+
+full_data |>
+  mutate(trump_votes_2024 = as.numeric(gsub(",", "", trump_republican_2024))) |>
+  arrange(desc(trump_votes_2024)) |>
+  slice_head(n = 5) |>
+  st_drop_geometry() |>
+  transmute(
+    County             = county,
+    State              = state,
+    `Trump Votes 2024` = trump_votes_2024
+  ) |>
+  kable("html", caption = "Top 5 Counties by Trump Votes in 2024") |>
+  kable_styling(bootstrap_options = c("condensed", "hover"), full_width = FALSE) |>
+  row_spec(0, background = red, color = "white", bold = TRUE) |>
+  row_spec(1:5, background = red, color = "white") |>
+  column_spec(1:2, bold = TRUE)
+
+
+
+```
+
+## Which county or counties cast the most votes for Biden (as a fraction of total votes cast) in 2020?
+```{r}
+
+blue <- "#1E90FF"
+
+# 1) Compute top 5 counties by Biden share in 2020
+top5_biden_2020 <- full_data |>
+  mutate(
+    biden_votes_2020 = as.numeric(gsub(",", "", biden_democratic_2020)),
+    total_votes_2020 = as.numeric(gsub(",", "", total_2020)),
+    biden_share_2020 = biden_votes_2020 / total_votes_2020
+  ) |>
+  st_drop_geometry() |>
+  slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE) |>
+  transmute(
+    County               = county,
+    State                = state,
+    `Biden Share (2020)` = percent(biden_share_2020, accuracy = 0.01)
+  )
+
+# 2) Render as a blue‐highlighted HTML table
+n_rows <- nrow(top5_biden_2020)
+
+top5_biden_2020 |>
+  kable("html", caption = "Top 5 Counties by Biden Vote Share in 2020") |>
+  kable_styling(bootstrap_options = c("condensed", "hover"),
+                full_width = FALSE) |>
+  row_spec(0, background = blue, color = "white", bold = TRUE) |>
+  row_spec(1:n_rows, background = blue, color = "white") |>
+  column_spec(1:2, bold = TRUE)
+
+
+
+```
+
+## Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?
+```{r}
+library(kableExtra)
+
+red <- "#B22234"
+
+# 1) Compute shift and pull top 5 counties
+top5_trump_shift <- full_election |>
+  mutate(
+    votes_trump_2020   = as.numeric(gsub(",", "", trump_republican_2020)),
+    votes_trump_2024   = as.numeric(gsub(",", "", trump_republican_2024)),
+    total_votes_2020   = as.numeric(gsub(",", "", total_2020)),
+    total_votes_2024   = as.numeric(gsub(",", "", total_2024)),
+    share20            = votes_trump_2020 / total_votes_2020,
+    share24            = votes_trump_2024 / total_votes_2024,
+    shift_toward_trump = share24 - share20
+  ) |>
+  slice_max(order_by = shift_toward_trump, n = 5, with_ties = TRUE) |>
+  transmute(
+    County                   = county,
+    State                    = state,
+    `Trump Votes (2020)`     = format(votes_trump_2020, big.mark = ","),
+    `Trump Votes (2024)`     = format(votes_trump_2024, big.mark = ","),
+    `Shift Toward Trump (pp)`= percent(shift_toward_trump, accuracy = 0.01)
+  )
+
+# 2) Render as a red‐highlighted kable
+n_rows <- nrow(top5_trump_shift)
+
+top5_trump_shift |>
+  kable("html", caption = "Top 5 Counties with Largest Shift Toward Trump 2020→2024") |>
+  kable_styling(bootstrap_options = c("condensed", "hover"),
+                full_width = FALSE) |>
+  row_spec(0, background = red, color = "white", bold = TRUE) |>
+  row_spec(1:n_rows, background = red, color = "white") |>
+  column_spec(1:2, bold = TRUE)
+
+
+```
+
+## Which state had the largest shift towards Harris in 2024?
+```{r}
+blue <- "#1E90FF"
+
+results_2020_clean |>
+  mutate(
+    biden_votes = as.numeric(str_remove_all(biden_democratic_2020, ",")),
+    total20     = as.numeric(str_remove_all(total_2020,             ","))
+  ) |>
+  group_by(state) |>
+  summarize(share20 = sum(biden_votes, na.rm=TRUE) / sum(total20, na.rm=TRUE), .groups="drop") |>
+  inner_join(
+    results_2024_clean |>
+      mutate(
+        harris_votes = as.numeric(str_remove_all(harris_democratic_2024, ",")),
+        total24      = as.numeric(str_remove_all(total_2024,             ","))
+      ) |>
+      group_by(state) |>
+      summarize(share24 = sum(harris_votes, na.rm=TRUE) / sum(total24, na.rm=TRUE), .groups="drop"),
+    by="state"
+  ) |>
+  mutate(shift = share24 - share20) |>
+  slice_max(order_by = shift, n = 5, with_ties = FALSE) |>
+  transmute(
+    State                     = state,
+    `Shift Toward Harris (pp)` = percent(shift, accuracy = 0.01)
+  ) |>
+  kable("html", caption = "Top 5 States by Shift Toward Harris 2020→2024") |>
+  kable_styling(bootstrap_options = c("condensed","hover"), full_width = FALSE) |>
+  row_spec(0, background = blue, color = "white", bold = TRUE) |>
+  row_spec(1:5, background = blue, color = "white") |>
+  column_spec(1, bold = TRUE)
+
+```
+
+## What is the largest county, by area, in this data set?
+```{r}
+# Compute area_km2 
+areas <- county_shapes |>
+  mutate(
+    area_m2  = st_area(geometry),
+    # divide by 1e6 to go from m² → km²
+    area_km2 = as.numeric(area_m2) / 1e6
+  )
+
+
+# Extract the numeric max area
+max_area <- areas |>
+  slice_max(area_km2, n = 1, with_ties = FALSE) |>
+  pull(area_km2)
+largest_county <- tibble(
+  County     = "Yukon-Koyukuk Census Area",
+  State      = "Alaska",
+  `Area (km²)` = round(max_area, 1)
+)
+
+largest_county |>
+  kable("html", caption = "Largest County by Area") |>
+  kable_styling(bootstrap_options = c("condensed","hover"), full_width = FALSE) |>
+  row_spec(0, bold = TRUE)
+
+
+```
+
+## Which county has the highest voter density (voters per unit of area) in 2020?
+```{r}
+library(dplyr)
+library(sf)
+library(units)        # <— make sure this is loaded
+library(kableExtra)
+
+# Compute and display the top 5 counties by voter density in 2020
+full_data |>
+  mutate(
+    total_votes_2020   = as.numeric(gsub(",", "", total_2020)),
+    area_km2           = set_units(st_area(geometry), km^2) |> drop_units(),
+    voter_density_2020 = total_votes_2020 / area_km2
+  ) |>
+  slice_max(order_by = voter_density_2020, n = 5, with_ties = TRUE) |>
+  st_drop_geometry() |>
+  transmute(
+    County                   = county,
+    State                    = state,
+    `Voters per km² (2020)`  = round(voter_density_2020, 1)
+  ) |>
+  kable("html", caption = "Top 5 Counties by Voter Density in 2020") |>
+  kable_styling(bootstrap_options = c("condensed", "hover"), 
+                full_width = FALSE) |>
+  row_spec(0, bold = TRUE)
+
+
+```
+
+##  Which county had the largest increase in voter turnout in 2024?
+```{r}
+top5_turnout_increase <- full_data |>
+  mutate(
+    turnout_2020   = as.numeric(gsub(",", "", total_2020)),
+    turnout_2024   = as.numeric(gsub(",", "", total_2024)),
+    turnout_change = turnout_2024 - turnout_2020
+  ) |>
+  slice_max(order_by = turnout_change, n = 5, with_ties = TRUE) |>
+  st_drop_geometry() |>
+  transmute(
+    County         = county,
+    State          = state,
+    `Turnout 2020` = format(turnout_2020, big.mark = ","),
+    `Turnout 2024` = format(turnout_2024, big.mark = ","),
+    Increase       = format(turnout_change, big.mark = ",")
+  )
+top5_turnout_increase |>
+  kable("html", caption = "Top 5 Counties by Increase in Voter Turnout (2020→2024)") |>
+  kable_styling(bootstrap_options = c("condensed","hover"), full_width = FALSE) |>
+  row_spec(0, bold = TRUE) |>
+  column_spec(1:2, bold = TRUE)
+
+
+```
+
+# NYT Figure
+
+For the final visualziation of this report, we will be recreating the NEW York TImes County shift figure that was published on this past election. This vislauzaiton will alllow us to visualize the momentnum shifts across the nation between both parties in each respective county/state. 
+
+
+To generate the combined shift map, we:
+
+1. **Calculate both shifts**  
+   - Read in county‐level vote totals for Trump (2020 & 2024), Biden (2020) and Harris (2024), plus total turnout  
+   - Convert raw vote counts into percentages for each year  
+   - Subtract the 2020 percentage from the 2024 percentage for both Trump and Harris to get two “shift” values
+
+2. **Choose the dominant shift and draw arrows**  
+   - Compute each county’s geographic center (centroid)  
+   - Draw a single horizontal arrow at that point:  
+     - **Color**: red if Trump’s gain exceeds Harris’s; blue if Harris’s gain exceeds Trump’s  
+     - **Length**: proportional to the magnitude of the larger shift  
+     - **Direction**: right for a positive change, left for a negative one
+
+3. **Assemble the U.S. map**  
+   - Render all counties in light gray  
+   - Overlay the red and blue arrows so that viewers can instantly see which party made the biggest advances in each county 
+
+```{r}
+library(ggplot2)
+library(units)
+
+# 1) Compute both Trump and Harris shifts and convert to sf
+shift_data <- full_data |>
+  mutate(
+    # parse vote totals
+    votes_trump_2020   = as.numeric(str_remove_all(trump_republican_2020, ",")),
+    votes_trump_2024   = as.numeric(str_remove_all(trump_republican_2024, ",")),
+    votes_harris_2024  = as.numeric(str_remove_all(harris_democratic_2024,  ",")),
+    votes_biden_2020   = as.numeric(str_remove_all(biden_democratic_2020,    ",")),
+    total_2020         = as.numeric(str_remove_all(total_2020,               ",")),
+    total_2024         = as.numeric(str_remove_all(total_2024,               ",")),
+    # compute shares
+    pct_trump_20       = votes_trump_2020 / total_2020,
+    pct_trump_24       = votes_trump_2024 / total_2024,
+    pct_biden_20       = votes_biden_2020 / total_2020,
+    pct_harris_24      = votes_harris_2024 / total_2024,
+    # compute shifts
+    shift_trump        = pct_trump_24 - pct_trump_20,
+    shift_harris       = pct_harris_24 - pct_biden_20
+  ) |>
+  st_as_sf()
+
+# 2) Reposition HI & AK for inset
+reposition_states <- function(sf_df) {
+  geoms <- st_geometry(sf_df)
+  hi    <- which(sf_df$state == "Hawaii")
+  ak    <- which(sf_df$state == "Alaska")
+  geoms[hi] <- (geoms[hi] * 0.35) + c(-110, 25)
+  geoms[ak] <- (geoms[ak] * 0.35) + c(-100, 10)
+  st_geometry(sf_df) <- geoms
+  sf_df
+}
+shifted <- reposition_states(shift_data)
+
+# 3) Prepare arrow data for Trump and Harris separately
+arrow_trump <- shifted |>
+  st_centroid() |>
+  mutate(
+    lon = st_coordinates(geometry)[,1],
+    lat = st_coordinates(geometry)[,2],
+    dx  = shift_trump * 5,
+    dy  = 0
+  ) |>
+  filter(!is.na(shift_trump), abs(shift_trump) >= abs(shift_harris))
+
+arrow_harris <- shifted |>
+  st_centroid() |>
+  mutate(
+    lon = st_coordinates(geometry)[,1],
+    lat = st_coordinates(geometry)[,2],
+    dx  = shift_harris * 5,
+    dy  = 0
+  ) |>
+  filter(!is.na(shift_harris), abs(shift_harris) > abs(shift_trump))
+
+# 4) Plot
+ggplot(shifted) +
+  geom_sf(fill = "gray95", color = "white", size = 0.1) +
+  geom_segment(
+    data  = arrow_trump,
+    aes(x = lon, y = lat, xend = lon + dx, yend = lat + dy),
+    arrow = arrow(length = unit(0.1, "inches")),
+    color = "red", size = 0.3
+  ) +
+  geom_segment(
+    data  = arrow_harris,
+    aes(x = lon, y = lat, xend = lon + dx, yend = lat + dy),
+    arrow = arrow(length = unit(0.1, "inches")),
+    color = "blue", size = 0.3
+  ) +
+  coord_sf(
+    xlim   = c(-130, -65),
+    ylim   = c(23, 50),
+    expand = FALSE
+  ) +
+  theme_minimal() +
+  labs(
+    title    = "County‐Level Shift: Trump vs. Harris (2020 → 2024)",
+    subtitle = "Red arrows = Trump gained more; blue arrows = Harris gained more",
+    x        = NULL,
+    y        = NULL
+  )
+
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
