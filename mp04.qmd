@@ -230,14 +230,14 @@ results_2020_clean <- results_2020_all |>
   ) |>
   rename(
     trump_votes_2020     = donald_trump_republican,
-    `%_for_trump_2020` = donald_trump_republican_2,
-    votes_for_biden_2020     = joe_biden_democratic,
+    `trump_republican_%_2020` = donald_trump_republican_2,
+    votes_for_biden_2020   = joe_biden_democratic,
     `biden_democratic_%_2020` = joe_biden_democratic_2,
     other_parties_2020        = various_candidates_other_parties,
-    `%_for_others_2020`    = various_candidates_other_parties_2,
-    `winning_%_2020`           = margin_2,
+    `other_parties_%_2020`    = various_candidates_other_parties_2,
+    `margin_%_2020`           = margin_2,
     margin_2020               = margin,
-    total_during_2020                = total
+    total_2020               = total
   ) |>
   filter(
     trump_votes_2020 != "#",
@@ -263,17 +263,17 @@ results_2024_clean <- results_2024_all |>
   ) |>
   rename(
     trump_votes_2024     = donald_trump_republican,
-    `trump_got_2024` = donald_trump_republican_2,
+    `trump_republican_%_2024` = donald_trump_republican_2,
     votes_harris_got_2024    = kamala_harris_democratic,
-    `%_for_harris_2024`= kamala_harris_democratic_2,
+    `harris_democratic_%_2024`= kamala_harris_democratic_2,
     other_parties_2024        = various_candidates_other_parties,
-    `%_for_others_2024`    = various_candidates_other_parties_2,
-    `winning%_in_2024`           = margin_2,
+    `other_parties_%_2024`    = various_candidates_other_parties_2,
+    `margin_%_2024`           = margin_2,
     margin_2024               = margin,
     total_during_2024                = total
   ) |>
   filter(
-    trump_votes_2024  != "#",
+    trump_votes_2024 != "#",
     county != "Totals"
   ) |>
   distinct(state, county, .keep_all = TRUE)
@@ -281,23 +281,17 @@ results_2024_clean <- results_2024_all |>
 
 shp_file      <- list.files("data/mp04", pattern = "\\.shp$", recursive = TRUE, full.names = TRUE)[1]
 county_shapes <- st_read(shp_file, quiet = TRUE)
-
-# reload if needed
-shp_file      <- list.files("data/mp04",
-                            pattern = "\\.shp$",
-                            recursive = TRUE,
-                            full.names = TRUE)[1]
-county_shapes <- st_read(shp_file, quiet = TRUE)
-
-# rename using NAME → county and STUSPS → state
 shapes_clean <- county_shapes %>%
   rename(
     county = NAME,
-    state  = STUSPS
+    state  = STATE_NAME
   ) %>%
-  select(county, state, geometry)
+  select(
+    county, state, geometry
+  )
 
-# now you can join
+
+# Combine  2020 & 2024 tables 
 full_election <- inner_join(
   results_2020_clean,
   results_2024_clean,
@@ -320,7 +314,7 @@ library(kableExtra)
 red <- "#B22234"
 
 full_data |>
-  mutate(trump_votes_2024 = as.numeric(gsub(",", "", trump_votes_2024 ))) |>
+  mutate(trump_votes_2024 = as.numeric(gsub(",", "", trump_votes_2024))) |>
   arrange(desc(trump_votes_2024)) |>
   slice_head(n = 5) |>
   st_drop_geometry() |>
@@ -330,10 +324,12 @@ full_data |>
     `Trump Votes 2024` = trump_votes_2024
   ) |>
   kable("html", caption = "Top 5 Counties by Trump Votes in 2024") |>
-  kable_styling(bootstrap_options = c("condensed", "hover"), full_width = FALSE) |>
+  kable_styling(bootstrap_options = c("condensed", "hover"),
+                full_width = FALSE) |>
   row_spec(0, background = red, color = "white", bold = TRUE) |>
   row_spec(1:5, background = red, color = "white") |>
   column_spec(1:2, bold = TRUE)
+
 
 
 
@@ -342,18 +338,24 @@ Los Angeles in California had the more Trump Votes overall for 2024. This is sur
 
 ## Which county or counties cast the most votes for Biden (as a fraction of total votes cast) in 2020?
 ```{r}
+library(scales)
+library(ggplot2)
+
 
 blue <- "#1E90FF"
 
+# 1) Compute top 5 counties by Biden share in 2020
 top5_biden_2020 <- full_data |>
   mutate(
+    # use the renamed column here
     biden_votes_2020 = as.numeric(gsub(",", "", votes_for_biden_2020)),
-    total_votes_2020 = as.numeric(gsub(",", "", total_during_2020)),
+    total_votes_2020 = as.numeric(gsub(",", "", total_2020)),
     biden_share_2020 = biden_votes_2020 / total_votes_2020
   ) |>
   st_drop_geometry() |>
   slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE)
 
+# 2) Render the table
 top5_biden_2020 |>
   transmute(
     County               = county,
@@ -367,6 +369,7 @@ top5_biden_2020 |>
   row_spec(1:5, background = blue, color = "white") |>
   column_spec(1:2, bold = TRUE)
 
+# 3) Create a horizontal bar chart
 ggplot(top5_biden_2020, aes(
     x = reorder(county, biden_share_2020),
     y = biden_share_2020
@@ -388,39 +391,52 @@ Oglala Lakota in South Dakota had the highest share of biden voters by county.
 
 ## Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?
 ```{r}
-library(kableExtra)
+library(scales)
+library(ggplot2)
 
-red <- "#B22234"
+blue <- "#1E90FF"
 
-
-top5_trump_shift <- full_election |>
+top5_biden_2020 <- full_data |>
   mutate(
-    votes_trump_2020   = as.numeric(gsub(",", "", trump_votes_2020)),
-    votes_trump_2024   = as.numeric(gsub(",", "", trump_votes_2024 )),
-    total_votes_2020   = as.numeric(gsub(",", "", total_during_2020)),
-    total_votes_2024   = as.numeric(gsub(",", "", total_during_2024)),
-    share20            = votes_trump_2020 / total_votes_2020,
-    share24            = votes_trump_2024 / total_votes_2024,
-    shift_toward_trump = share24 - share20
+    biden_votes_2020 = as.numeric(gsub(",", "", votes_for_biden_2020)),
+    total_votes_2020 = as.numeric(gsub(",", "", total_2020)),
+    biden_share_2020 = biden_votes_2020 / total_votes_2020
   ) |>
-  slice_max(order_by = shift_toward_trump, n = 5, with_ties = TRUE) |>
+  st_drop_geometry() |>
+  slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE)
+
+# Table output
+top5_biden_2020 |>
   transmute(
-    County                   = county,
-    State                    = state,
-    `Trump Votes (2020)`     = format(votes_trump_2020, big.mark = ","),
-    `Trump Votes (2024)`     = format(votes_trump_2024, big.mark = ","),
-    `Shift Toward Trump (pp)`= percent(shift_toward_trump, accuracy = 0.01)
-  )
-
-n_rows <- nrow(top5_trump_shift)
-
-top5_trump_shift |>
-  kable("html", caption = "Top 5 Counties with Largest Shift Toward Trump 2020→2024") |>
+    County               = county,
+    State                = state,
+    `Biden Share (2020)` = percent(biden_share_2020, accuracy = 0.01)
+  ) |>
+  kable("html", caption = "Top 5 Counties by Biden Vote Share in 2020") |>
   kable_styling(bootstrap_options = c("condensed", "hover"),
                 full_width = FALSE) |>
-  row_spec(0, background = red, color = "white", bold = TRUE) |>
-  row_spec(1:n_rows, background = red, color = "white") |>
+  row_spec(0, background = blue, color = "white", bold = TRUE) |>
+  row_spec(1:5, background = blue, color = "white") |>
   column_spec(1:2, bold = TRUE)
+
+# Plot output
+ggplot(top5_biden_2020, aes(
+  x = reorder(county, biden_share_2020),
+  y = biden_share_2020
+)) +
+  geom_col(fill = blue) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Top 5 Counties by Biden Vote Share in 2020",
+    x     = "County",
+    y     = "Biden Share (2020)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(face = "bold")
+  )
+
 
 
 ```
@@ -442,7 +458,7 @@ blue <- "#1E90FF"
 results_2020_clean |>
   mutate(
     biden_votes = as.numeric(str_remove_all(votes_for_biden_2020, ",")),
-    total20     = as.numeric(str_remove_all(total_during_2020, ","))
+    total20     = as.numeric(str_remove_all(total_2020, ","))
   ) |>
   group_by(state) |>
   summarize(
@@ -525,7 +541,7 @@ library(kableExtra)
 # Compute and display the top 5 counties by voter density in 2020
 full_data |>
   mutate(
-    total_votes_2020   = as.numeric(gsub(",", "", total_during_2020)),
+    total_votes_2020   = as.numeric(gsub(",", "", total_2020)),
     area_km2           = set_units(st_area(geometry), km^2) |> drop_units(),
     voter_density_2020 = total_votes_2020 / area_km2
   ) |>
@@ -550,7 +566,7 @@ The county with the most voter density is San Francisco, in California. It has a
 
 top5_turnout_increase <- full_data |>
   mutate(
-    turnout_2020   = as.numeric(gsub(",", "", total_during_2020)),
+    turnout_2020   = as.numeric(gsub(",", "", total_2020)),
     turnout_2024   = as.numeric(gsub(",", "", total_during_2024)),
     turnout_change = turnout_2024 - turnout_2020
   ) |>
@@ -629,12 +645,12 @@ shift_data <- full_data |>
     votes_trump_2024   = as.numeric(str_remove_all(trump_votes_2024 , ",")),
     votes_harris_2024  = as.numeric(str_remove_all(votes_harris_got_2024,  ",")),
     votes_biden_2020   = as.numeric(str_remove_all(votes_for_biden_2020,    ",")),
-    total_during_2020         = as.numeric(str_remove_all(total_during_2020,               ",")),
+    total_2020         = as.numeric(str_remove_all(total_2020,               ",")),
     total_during_2024         = as.numeric(str_remove_all(total_during_2024,               ",")),
     
-    percent_for_trump_20       = votes_trump_2020 / total_during_2020,
+    percent_for_trump_20       = votes_trump_2020 / total_2020,
     percent_for_trump_24      = votes_trump_2024 / total_during_2024,
-    percent_for_biden_20       = votes_biden_2020 / total_during_2020,
+    percent_for_biden_20       = votes_biden_2020 / total_2020,
     percent_for_harris_24      = votes_harris_2024 / total_during_2024,
     # compute shifts
     shift_trump        = percent_for_trump_24 - percent_for_trump_20,
@@ -706,8 +722,5 @@ ggplot(shifted) +
 ```
 
 
-```{r}
 
-
-```
 
