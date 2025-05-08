@@ -329,6 +329,7 @@ full_data |>
 
 
 ```
+Los Angeles in California had the more Trump Votes overall for 2024. This is surprising given that this is historically a blue leaning state.
 
 ## Which county or counties cast the most votes for Biden (as a fraction of total votes cast) in 2020?
 ```{r}
@@ -364,6 +365,7 @@ top5_biden_2020 |>
 
 
 ```
+Oglala Lakota in South Dakota had the highest share of biden voters by county.
 
 ## Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?
 ```{r}
@@ -404,6 +406,7 @@ top5_trump_shift |>
 
 
 ```
+Maverick, in Texas, has the largest shift towards Trump between the elections at 14%.
 
 ## Which state had the largest shift towards Harris in 2024?
 ```{r}
@@ -439,6 +442,7 @@ results_2020_clean |>
   column_spec(1, bold = TRUE)
 
 ```
+Unfortunately for Harris, there were not many positives in this election. Democrats lost alot of ground and only gained in California.
 
 ## What is the largest county, by area, in this data set?
 ```{r}
@@ -468,6 +472,7 @@ largest_county |>
 
 
 ```
+Yukon-Koyukuk Census Area, in Alaska, had the largest amount of area within that county at 380,461.
 
 ## Which county has the highest voter density (voters per unit of area) in 2020?
 ```{r}
@@ -497,9 +502,17 @@ full_data |>
 
 
 ```
+The county with the most voter density is San Francisco, in California. It has about 3624 votes per kilometer (the metric used for this study)
 
 ##  Which county had the largest increase in voter turnout in 2024?
 ```{r}
+library(dplyr)
+library(sf)
+library(ggplot2)
+library(kableExtra)
+library(scales)
+
+# Prepare the top 5 table and numeric data for plotting
 top5_turnout_increase <- full_data |>
   mutate(
     turnout_2020   = as.numeric(gsub(",", "", total_2020)),
@@ -508,21 +521,45 @@ top5_turnout_increase <- full_data |>
   ) |>
   slice_max(order_by = turnout_change, n = 5, with_ties = TRUE) |>
   st_drop_geometry() |>
+  mutate( Increase = turnout_change )  
+
+# Render the table
+top5_turnout_increase |>
   transmute(
     County         = county,
     State          = state,
     `Turnout 2020` = format(turnout_2020, big.mark = ","),
     `Turnout 2024` = format(turnout_2024, big.mark = ","),
     Increase       = format(turnout_change, big.mark = ",")
-  )
-top5_turnout_increase |>
+  ) |>
   kable("html", caption = "Top 5 Counties by Increase in Voter Turnout (2020→2024)") |>
   kable_styling(bootstrap_options = c("condensed","hover"), full_width = FALSE) |>
   row_spec(0, bold = TRUE) |>
   column_spec(1:2, bold = TRUE)
 
+# And now the bar chart
+ggplot(top5_turnout_increase, aes(
+    x = reorder(county, turnout_change),
+    y = turnout_change,
+    fill = turnout_change
+  )) +
+  geom_col() +
+  coord_flip() +
+  scale_fill_gradient(low = "pink", high = "red", labels = comma) +
+  labs(
+    title = "Top 5 Counties by Turnout Increase (2020→2024)",
+    x     = "County",
+    y     = "Turnout Increase",
+    fill  = "Increase\n(votes)"
+  ) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.y     = element_text(face = "bold")
+  )
 
 ```
+Montgomery, in Texas had the highest increase in voter turnout. It was over 35,715 higher than it previously was four years ago.
 
 # NYT Figure
 
@@ -643,14 +680,3 @@ ggplot(shifted) +
 
 ```
 
-
-```{r}
-
-
-```
-
-
-```{r}
-
-
-```
