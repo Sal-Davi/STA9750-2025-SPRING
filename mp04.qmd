@@ -339,7 +339,7 @@ Los Angeles in California had the more Trump Votes overall for 2024. This is sur
 
 blue <- "#1E90FF"
 
-# 1) Compute top 5 counties by Biden share in 2020
+# 1) Compute top 5 counties by Biden share in 2020, keeping numeric share for plotting
 top5_biden_2020 <- full_data |>
   mutate(
     biden_votes_2020 = as.numeric(gsub(",", "", biden_democratic_2020)),
@@ -347,26 +347,39 @@ top5_biden_2020 <- full_data |>
     biden_share_2020 = biden_votes_2020 / total_votes_2020
   ) |>
   st_drop_geometry() |>
-  slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE) |>
+  slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE)
+
+# 2) Render as a blue‐highlighted HTML table
+top5_biden_2020 |>
   transmute(
     County               = county,
     State                = state,
     `Biden Share (2020)` = percent(biden_share_2020, accuracy = 0.01)
-  )
-
-# 2) Render as a blue‐highlighted HTML table
-n_rows <- nrow(top5_biden_2020)
-
-top5_biden_2020 |>
+  ) |>
   kable("html", caption = "Top 5 Counties by Biden Vote Share in 2020") |>
   kable_styling(bootstrap_options = c("condensed", "hover"),
                 full_width = FALSE) |>
   row_spec(0, background = blue, color = "white", bold = TRUE) |>
-  row_spec(1:n_rows, background = blue, color = "white") |>
+  row_spec(1:5, background = blue, color = "white") |>
   column_spec(1:2, bold = TRUE)
 
-
-
+# 3) Create a horizontal bar chart
+ggplot(top5_biden_2020, aes(
+    x = reorder(county, biden_share_2020),
+    y = biden_share_2020
+  )) +
+  geom_col(fill = blue) +
+  coord_flip() +
+  scale_y_continuous(labels = percent_format(accuracy = 1)) +
+  labs(
+    title = "Top 5 Counties by Biden Vote Share in 2020",
+    x     = "County",
+    y     = "Biden Share (2020)"
+  ) +
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(face = "bold")
+  )
 ```
 Oglala Lakota in South Dakota had the highest share of biden voters by county.
 
@@ -413,33 +426,56 @@ Maverick, in Texas, has the largest shift towards Trump between the elections at
 
 ## Which state had the largest shift towards Harris in 2024?
 ```{r}
+#| label: top5-harris-table
+#| echo: false
+#| results: asis
+
+library(dplyr)
+library(stringr)
+library(kableExtra)
+library(scales)
+
 blue <- "#1E90FF"
 
 results_2020_clean |>
   mutate(
     biden_votes = as.numeric(str_remove_all(biden_democratic_2020, ",")),
-    total20     = as.numeric(str_remove_all(total_2020,             ","))
+    total20     = as.numeric(str_remove_all(total_2020, ","))
   ) |>
   group_by(state) |>
-  summarize(share20 = sum(biden_votes, na.rm=TRUE) / sum(total20, na.rm=TRUE), .groups="drop") |>
+  summarize(
+    share20 = sum(biden_votes, na.rm = TRUE) / sum(total20, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
   inner_join(
     results_2024_clean |>
       mutate(
         harris_votes = as.numeric(str_remove_all(harris_democratic_2024, ",")),
-        total24      = as.numeric(str_remove_all(total_2024,             ","))
+        total24      = as.numeric(str_remove_all(total_2024, ","))
       ) |>
       group_by(state) |>
-      summarize(share24 = sum(harris_votes, na.rm=TRUE) / sum(total24, na.rm=TRUE), .groups="drop"),
-    by="state"
+      summarize(
+        share24 = sum(harris_votes, na.rm = TRUE) / sum(total24, na.rm = TRUE),
+        .groups = "drop"
+      ),
+    by = "state"
   ) |>
   mutate(shift = share24 - share20) |>
   slice_max(order_by = shift, n = 5, with_ties = FALSE) |>
   transmute(
-    State                     = state,
-    `Shift Toward Harris (pp)` = percent(shift, accuracy = 0.01)
+    State                   = state,
+    `2020 Share`            = percent(share20, accuracy = 0.1),
+    `2024 Share`            = percent(share24, accuracy = 0.1),
+    `Shift Toward Harris`   = percent(shift, accuracy = 0.01)
   ) |>
-  kable("html", caption = "Top 5 States by Shift Toward Harris 2020→2024") |>
-  kable_styling(bootstrap_options = c("condensed","hover"), full_width = FALSE) |>
+  kable(
+    format = "html",
+    caption = "Top 5 States by Shift Toward Harris 2020→2024"
+  ) |>
+  kable_styling(
+    bootstrap_options = c("condensed", "hover"),
+    full_width = FALSE
+  ) |>
   row_spec(0, background = blue, color = "white", bold = TRUE) |>
   row_spec(1:5, background = blue, color = "white") |>
   column_spec(1, bold = TRUE)
