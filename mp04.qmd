@@ -391,51 +391,45 @@ Oglala Lakota in South Dakota had the highest share of biden voters by county.
 
 ## Which county or counties had the largest shift towards Trump (in absolute terms) in 2024?
 ```{r}
+library(dplyr)
+library(sf)
 library(scales)
-library(ggplot2)
+library(kableExtra)
 
-blue <- "#1E90FF"
+red <- "#B22234"
 
-top5_biden_2020 <- full_data |>
+# 1) Compute Trump share shift using the correct column names
+top_trump_shift <- full_data |>
   mutate(
-    biden_votes_2020 = as.numeric(gsub(",", "", votes_for_biden_2020)),
-    total_votes_2020 = as.numeric(gsub(",", "", total_2020)),
-    biden_share_2020 = biden_votes_2020 / total_votes_2020
+    votes20 = as.numeric(gsub(",", "", trump_votes_2020)),
+    votes24 = as.numeric(gsub(",", "", trump_votes_2024)),
+    total20 = as.numeric(gsub(",", "", total_2020)),
+    total24 = as.numeric(gsub(",", "", total_during_2024)),
+    share20 = votes20 / total20,
+    share24 = votes24 / total24,
+    shift   = share24 - share20
   ) |>
+  slice_max(order_by = shift, n = 1, with_ties = TRUE) |>
   st_drop_geometry() |>
-  slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE)
-
-# Table output
-top5_biden_2020 |>
   transmute(
-    County               = county,
-    State                = state,
-    `Biden Share (2020)` = percent(biden_share_2020, accuracy = 0.01)
-  ) |>
-  kable("html", caption = "Top 5 Counties by Biden Vote Share in 2020") |>
+    County                   = county,
+    State                    = state,
+    `Trump Share (2020)`     = percent(share20, accuracy = 0.01),
+    `Trump Share (2024)`     = percent(share24, accuracy = 0.01),
+    `Shift Toward Trump (pp)`= percent(shift,  accuracy = 0.01)
+  )
+
+# 2) Count rows for styling
+n_rows <- nrow(top_trump_shift)
+
+# 3) Render as a red‐highlighted HTML table
+top_trump_shift |>
+  kable("html", caption = "County(ies) with Largest Shift Toward Trump (2020→2024)") |>
   kable_styling(bootstrap_options = c("condensed", "hover"),
                 full_width = FALSE) |>
-  row_spec(0, background = blue, color = "white", bold = TRUE) |>
-  row_spec(1:5, background = blue, color = "white") |>
+  row_spec(0, background = red, color = "white", bold = TRUE) |>
+  row_spec(1:n_rows, background = red, color = "white") |>
   column_spec(1:2, bold = TRUE)
-
-# Plot output
-ggplot(top5_biden_2020, aes(
-  x = reorder(county, biden_share_2020),
-  y = biden_share_2020
-)) +
-  geom_col(fill = blue) +
-  coord_flip() +
-  scale_y_continuous(labels = percent_format(accuracy = 1)) +
-  labs(
-    title = "Top 5 Counties by Biden Vote Share in 2020",
-    x     = "County",
-    y     = "Biden Share (2020)"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.y = element_text(face = "bold")
-  )
 
 
 
@@ -718,7 +712,6 @@ ggplot(shifted) +
   )
 
 
-#test
 ```
 
 
