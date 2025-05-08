@@ -29,6 +29,8 @@ For this project, we assembled a county-level dataset tracking U.S. presidential
 
 ## US County ShapeFiles
 ```{r}
+#| message: false
+#| warning: false
 library(stringr)
 library(dplyr)
 library(knitr)
