@@ -282,16 +282,22 @@ results_2024_clean <- results_2024_all |>
 shp_file      <- list.files("data/mp04", pattern = "\\.shp$", recursive = TRUE, full.names = TRUE)[1]
 county_shapes <- st_read(shp_file, quiet = TRUE)
 
+# reload if needed
+shp_file      <- list.files("data/mp04",
+                            pattern = "\\.shp$",
+                            recursive = TRUE,
+                            full.names = TRUE)[1]
+county_shapes <- st_read(shp_file, quiet = TRUE)
+
+# rename using NAME → county and STUSPS → state
 shapes_clean <- county_shapes %>%
   rename(
     county = NAME,
-    state  = STATE_N
+    state  = STUSPS
   ) %>%
-  select(
-    county, state, geometry
-  )
+  select(county, state, geometry)
 
-# Combine  2020 & 2024 tables 
+# now you can join
 full_election <- inner_join(
   results_2020_clean,
   results_2024_clean,
