@@ -339,7 +339,6 @@ Los Angeles in California had the more Trump Votes overall for 2024. This is sur
 
 blue <- "#1E90FF"
 
-# 1) Compute top 5 counties by Biden share in 2020, keeping numeric share for plotting
 top5_biden_2020 <- full_data |>
   mutate(
     biden_votes_2020 = as.numeric(gsub(",", "", votes_for_biden_2020)),
@@ -349,7 +348,6 @@ top5_biden_2020 <- full_data |>
   st_drop_geometry() |>
   slice_max(order_by = biden_share_2020, n = 5, with_ties = TRUE)
 
-# 2) Render as a blue‐highlighted HTML table
 top5_biden_2020 |>
   transmute(
     County               = county,
@@ -363,7 +361,6 @@ top5_biden_2020 |>
   row_spec(1:5, background = blue, color = "white") |>
   column_spec(1:2, bold = TRUE)
 
-# 3) Create a horizontal bar chart
 ggplot(top5_biden_2020, aes(
     x = reorder(county, biden_share_2020),
     y = biden_share_2020
@@ -389,7 +386,7 @@ library(kableExtra)
 
 red <- "#B22234"
 
-# 1) Compute shift and pull top 5 counties
+
 top5_trump_shift <- full_election |>
   mutate(
     votes_trump_2020   = as.numeric(gsub(",", "", trump_votes_2020)),
@@ -409,7 +406,6 @@ top5_trump_shift <- full_election |>
     `Shift Toward Trump (pp)`= percent(shift_toward_trump, accuracy = 0.01)
   )
 
-# 2) Render as a red‐highlighted kable
 n_rows <- nrow(top5_trump_shift)
 
 top5_trump_shift |>
@@ -619,7 +615,7 @@ To generate the combined shift map, we:
 library(ggplot2)
 library(units)
 
-# 1) Compute both Trump and Harris shifts and convert to sf
+# Compute both Trump and Harris shifts
 shift_data <- full_data |>
   mutate(
    
@@ -640,7 +636,6 @@ shift_data <- full_data |>
   ) |>
   st_as_sf()
 
-# 2) Reposition HI & AK for inset
 reposition_states <- function(sf_df) {
   geoms <- st_geometry(sf_df)
   hi    <- which(sf_df$state == "Hawaii")
@@ -652,7 +647,6 @@ reposition_states <- function(sf_df) {
 }
 shifted <- reposition_states(shift_data)
 
-# 3) Prepare arrow data for Trump and Harris separately
 arrow_trump <- shifted |>
   st_centroid() |>
   mutate(
