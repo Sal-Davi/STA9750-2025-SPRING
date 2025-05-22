@@ -21,9 +21,6 @@ Due to persistent API connection issues with AlphaVantage, some of the graphs sh
 
 
 
-Let me know if you want it more formal or have any other tweaks!
-
-
 # Introduction
 
 For this project, and my two individual questions, I needed to make use of two databases, alphavantage and FRED. Alphavantage allowed me to downloaded the price history for ETFs, and FRED I acquired GDP per nomina & inflation data for each country that was needed to answer the specific questions.
@@ -189,7 +186,7 @@ ggplot(gdp_rank, aes(x = date, y = rank, color = country)) +
 
 ```
 
-Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the UK, France, India, Japan, South Korea, and the USA. These countries represent some of the world’s largest economies by GDP, making them essential to our analysis as we explore investment opportunities in international equities linked to these markets.
+Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the UK, France, India, Japan, South Korea, and the USA. These countries represent some of the world’s largest economies by GDP, making them essential to our analysis as we explore investment opportunities in international equities linked to these markets.The most interesting mover is the U.K. Going from 2nd, falling at 6th, and ascending back to 2nd by th early 2000s. 
 
 ## Inflation
 ```{r}
@@ -253,29 +250,26 @@ ggplot(inflation_heatmap, aes(x = factor(year), y = fct_reorder(country, -inflat
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 ```
-Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets.
+Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets. From this visualization we can see that Mexico has experienced the most hyper-inflation of any of the other 10 nations, even rising as high as 100% in the 1980s.
 
 
 ## ETFs for each of the nations
 ```{r}
-library(ggplot2)
-
-# Named vector of ETF tickers for each country
 # USA: SPY (S&P 500), China: FXI (iShares China Large-Cap), Germany: EWG (iShares MSCI Germany),
 # India: INDA (iShares MSCI India), Japan: EWJ (iShares MSCI Japan), UK: EWU (iShares MSCI United Kingdom),
 # France: EWQ (iShares MSCI France), Italy: EWI (iShares MSCI Italy)
+
+#We limited it to these few etf tickets due to API timeouts (Free tier)
+
 etf_tickers <- c(
-  USA     = "SPY",
-  China   = "FXI",
-  Germany = "EWG",
-  India   = "INDA",
-  Japan   = "EWJ",
-  UK      = "EWU",
-  France  = "EWQ",
-  Italy   = "EWI"
+  USA          = "SPY",
+  China        = "FXI",
+  Canada       = "EWC",
+  Japan        = "EWJ",
+  `South Korea`= "EWY"
 )
 
-# Fetch, tag, and combine ETF price histories
+# 2. Fetch price histories for all
 etf_prices_long <- etf_tickers |>
   imap_dfr(function(ticker, country) {
     GET_AV(ticker) |>
@@ -287,24 +281,32 @@ etf_prices_long <- etf_tickers |>
       select(date, country, price)
   })
 
+# Index prices to 100 at start for each country
+etf_prices_long_indexed <- etf_prices_long %>%
+  group_by(country) %>%
+  arrange(date) %>%
+  mutate(indexed_price = 100 * price / first(price)) %>%
+  ungroup()
 
-# Plot the price history for each ETF
-etf_prices_long |>
-  ggplot(aes(x = date, y = price, color = country)) +
-    geom_line(size = 1) +
-    labs(
-      title    = "ETF Price History by Country",
-      subtitle = "Adjusted closing prices for representative country ETFs",
-      x        = NULL,
-      y        = "Adjusted Close Price (USD)",
-      color    = NULL
-    ) +
-    theme_minimal() +
-    theme(
-      plot.title     = element_text(size = 16, face = "bold"),
-      plot.subtitle  = element_text(size = 12),
-      legend.position = "bottom"
-    )
+# Faceted area plot
+ggplot(etf_prices_long_indexed, aes(x = date, y = indexed_price, fill = country)) +
+  geom_area(alpha = 0.6, color = "white", size = 0.4) +
+  facet_wrap(~country, ncol = 2, scales = "free_y") +
+  scale_fill_viridis_d(option = "inferno", end = 0.8, guide = "none") +
+  labs(
+    title = "Country ETF Price Growth (Indexed, Faceted)",
+    subtitle = "Faceted by country to highlight trend and volatility",
+    x = NULL,
+    y = "Indexed ETF Price (Start = 100)"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    strip.text   = element_text(face = "bold", size = 13),
+    plot.title   = element_text(size = 17, face = "bold"),
+    plot.subtitle= element_text(size = 12),
+    panel.grid.minor = element_blank()
+  )
+
 
 ```
 
@@ -842,6 +844,8 @@ We focused on four countries—Canada, China, Japan, and South Korea—where we 
 
 
 ```{r}
+#annualized performance metrics code
+
 # Define only 4 tickers for both equity and resource ETFs
 equity_tickers <- c(
   Japan        = "EWJ",
@@ -874,9 +878,7 @@ res_rets <- imap_dfr(resource_tickers, function(sym, country) {
   fetch_ret(sym, "ret_res") %>% mutate(country = country)
 })
 
-# Quick check: Print heads to verify data is coming through
-print(head(equity_rets))
-print(head(res_rets))
+
 
 # Merge equity vs. resource returns
 paired <- inner_join(equity_rets, res_rets, by = c("date", "country"))
@@ -895,7 +897,7 @@ metrics <- paired %>%
     .groups      = "drop"
   )
 
-# Order countries for display
+# Japan, Canada, China, SK will be displayed
 country_levels <- c("Japan", "Canada", "China", "South Korea")
 metrics_filtered <- metrics %>%
   filter(country %in% country_levels) %>%
@@ -912,7 +914,7 @@ knitr::kable(metrics_filtered, digits = 3, caption = "Annualized Performance Met
 
 ```{r}
 
-
+#the data below is a result of the annualized performance metrics code
 metrics <- tibble::tibble(
   country = c("Japan", "Canada", "China", "South Korea"),
   ann_ret_eq = c(0.058, 0.066, -0.018, 0.024),
@@ -941,7 +943,7 @@ ggplot(metrics_long, aes(x = country, y = annualized_return, fill = type)) +
 
 
 ```{r}
-
+#the data below is a result of the annualized performance metrics code
 vol_data <- tibble::tibble(
   country = c("Japan", "Canada", "China", "South Korea"),
   Equity = c(0.142, 0.199, 0.237, 0.230),

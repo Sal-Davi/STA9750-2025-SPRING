@@ -173,7 +173,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 
 <p><strong>Note:</strong> Due to persistent API connection issues with AlphaVantage, some of the graphs shown below were generated using hard-coded results rather than plotting directly from the code in the analysis. The data used in these graphs matches the results produced by the code, but because of frequent disconnections, we were unable to plot them live. Instead, we used the final output from the code to create the visualizations.</p>
-<p>Let me know if you want it more formal or have any other tweaks!</p>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
 <p>For this project, and my two individual questions, I needed to make use of two databases, alphavantage and FRED. Alphavantage allowed me to downloaded the price history for ETFs, and FRED I acquired GDP per nomina &amp; inflation data for each country that was needed to answer the specific questions.</p>
@@ -342,7 +341,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the UK, France, India, Japan, South Korea, and the USA. These countries represent some of the world’s largest economies by GDP, making them essential to our analysis as we explore investment opportunities in international equities linked to these markets.</p>
+<p>Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the UK, France, India, Japan, South Korea, and the USA. These countries represent some of the world’s largest economies by GDP, making them essential to our analysis as we explore investment opportunities in international equities linked to these markets.The most interesting mover is the U.K. Going from 2nd, falling at 6th, and ascending back to 2nd by th early 2000s.</p>
 </section>
 <section id="inflation" class="level2">
 <h2 class="anchored" data-anchor-id="inflation">Inflation</h2>
@@ -417,60 +416,64 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets.</p>
+<p>Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets. From this visualization we can see that Mexico has experienced the most hyper-inflation of any of the other 10 nations, even rising as high as 100% in the 1980s.</p>
 </section>
 <section id="etfs-for-each-of-the-nations" class="level2">
 <h2 class="anchored" data-anchor-id="etfs-for-each-of-the-nations">ETFs for each of the nations</h2>
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Named vector of ETF tickers for each country</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># USA: SPY (S&amp;P 500), China: FXI (iShares China Large-Cap), Germany: EWG (iShares MSCI Germany),</span></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># India: INDA (iShares MSCI India), Japan: EWJ (iShares MSCI Japan), UK: EWU (iShares MSCI United Kingdom),</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co"># France: EWQ (iShares MSCI France), Italy: EWI (iShares MSCI Italy)</span></span>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># USA: SPY (S&amp;P 500), China: FXI (iShares China Large-Cap), Germany: EWG (iShares MSCI Germany),</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># India: INDA (iShares MSCI India), Japan: EWJ (iShares MSCI Japan), UK: EWU (iShares MSCI United Kingdom),</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># France: EWQ (iShares MSCI France), Italy: EWI (iShares MSCI Italy)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">#We limited it to these few etf tickets due to API timeouts (Free tier)</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>etf_tickers <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">USA     =</span> <span class="st">"SPY"</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">China   =</span> <span class="st">"FXI"</span>,</span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Germany =</span> <span class="st">"EWG"</span>,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">India   =</span> <span class="st">"INDA"</span>,</span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Japan   =</span> <span class="st">"EWJ"</span>,</span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">UK      =</span> <span class="st">"EWU"</span>,</span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">France  =</span> <span class="st">"EWQ"</span>,</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">Italy   =</span> <span class="st">"EWI"</span></span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fetch, tag, and combine ETF price histories</span></span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>etf_prices_long <span class="ot">&lt;-</span> etf_tickers <span class="sc">|&gt;</span></span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">imap_dfr</span>(<span class="cf">function</span>(ticker, country) {</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">GET_AV</span>(ticker) <span class="sc">|&gt;</span></span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(date, adjusted_close) <span class="sc">|&gt;</span></span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">country =</span> country,</span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        <span class="at">price   =</span> adjusted_close</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(date, country, price)</span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the price history for each ETF</span></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>etf_prices_long <span class="sc">|&gt;</span></span>
-<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> price, <span class="at">color =</span> country)) <span class="sc">+</span></span>
-<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_line</span>(<span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>      <span class="at">title    =</span> <span class="st">"ETF Price History by Country"</span>,</span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>      <span class="at">subtitle =</span> <span class="st">"Adjusted closing prices for representative country ETFs"</span>,</span>
-<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>      <span class="at">x        =</span> <span class="cn">NULL</span>,</span>
-<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>      <span class="at">y        =</span> <span class="st">"Adjusted Close Price (USD)"</span>,</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>      <span class="at">color    =</span> <span class="cn">NULL</span></span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.title     =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">16</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>      <span class="at">plot.subtitle  =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>      <span class="at">legend.position =</span> <span class="st">"bottom"</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">USA          =</span> <span class="st">"SPY"</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">China        =</span> <span class="st">"FXI"</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Canada       =</span> <span class="st">"EWC"</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Japan        =</span> <span class="st">"EWJ"</span>,</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">South Korea</span><span class="st">`</span><span class="ot">=</span> <span class="st">"EWY"</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Fetch price histories for all</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>etf_prices_long <span class="ot">&lt;-</span> etf_tickers <span class="sc">|&gt;</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">imap_dfr</span>(<span class="cf">function</span>(ticker, country) {</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">GET_AV</span>(ticker) <span class="sc">|&gt;</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(date, adjusted_close) <span class="sc">|&gt;</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>      <span class="fu">mutate</span>(</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">country =</span> country,</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">price   =</span> adjusted_close</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>      ) <span class="sc">|&gt;</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">select</span>(date, country, price)</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Index prices to 100 at start for each country</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>etf_prices_long_indexed <span class="ot">&lt;-</span> etf_prices_long <span class="sc">%&gt;%</span></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">%&gt;%</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(date) <span class="sc">%&gt;%</span></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">indexed_price =</span> <span class="dv">100</span> <span class="sc">*</span> price <span class="sc">/</span> <span class="fu">first</span>(price)) <span class="sc">%&gt;%</span></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Faceted area plot</span></span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(etf_prices_long_indexed, <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> indexed_price, <span class="at">fill =</span> country)) <span class="sc">+</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_area</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"white"</span>, <span class="at">size =</span> <span class="fl">0.4</span>) <span class="sc">+</span></span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>country, <span class="at">ncol =</span> <span class="dv">2</span>, <span class="at">scales =</span> <span class="st">"free_y"</span>) <span class="sc">+</span></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_d</span>(<span class="at">option =</span> <span class="st">"inferno"</span>, <span class="at">end =</span> <span class="fl">0.8</span>, <span class="at">guide =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Country ETF Price Growth (Indexed, Faceted)"</span>,</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Faceted by country to highlight trend and volatility"</span>,</span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="cn">NULL</span>,</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Indexed ETF Price (Start = 100)"</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">strip.text   =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>, <span class="at">size =</span> <span class="dv">13</span>),</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.title   =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">17</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">plot.subtitle=</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">12</span>),</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">panel.grid.minor =</span> <span class="fu">element_blank</span>()</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -494,8 +497,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(etf_prices_wide, <span class="dv">10</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 0 × 1
-# ℹ 1 variable: date &lt;date&gt;</code></pre>
+<pre><code># A tibble: 10 × 6
+   date         USA China Canada Japan `South Korea`
+   &lt;date&gt;     &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt;         &lt;dbl&gt;
+ 1 2025-05-21  583.  36.1   43.9  72.3          59.1
+ 2 2025-04-30  555.  33.9   42.4  71.4          56.2
+ 3 2025-03-31  559.  35.8   40.8  68.6          54.0
+ 4 2025-02-28  592.  35.2   41.2  68.5          54.7
+ 5 2025-01-31  600.  31.9   41.2  68.3          54.0
+ 6 2024-12-31  584.  30.4   40.3  67.1          50.9
+ 7 2024-11-29  599.  29.9   42.7  68.6          56.1
+ 8 2024-10-31  565.  31.1   40.1  67.0          58.5
+ 9 2024-09-30  570.  31.3   41.0  70.4          62.4
+10 2024-08-30  558.  26.1   40.0  70.9          64.0</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -508,14 +522,99 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<table class="caption-top">
+<table class="caption-top table table-sm table-striped small">
 <caption>ETF Adjusted Closing Prices by Country (First 10 Observations)</caption>
 <thead>
 <tr class="header">
 <th style="text-align: left;">date</th>
+<th style="text-align: right;">USA</th>
+<th style="text-align: right;">China</th>
+<th style="text-align: right;">Canada</th>
+<th style="text-align: right;">Japan</th>
+<th style="text-align: right;">South Korea</th>
 </tr>
 </thead>
 <tbody>
+<tr class="odd">
+<td style="text-align: left;">2025-05-21</td>
+<td style="text-align: right;">582.8600</td>
+<td style="text-align: right;">36.0900</td>
+<td style="text-align: right;">43.9400</td>
+<td style="text-align: right;">72.3100</td>
+<td style="text-align: right;">59.1000</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2025-04-30</td>
+<td style="text-align: right;">554.5400</td>
+<td style="text-align: right;">33.8600</td>
+<td style="text-align: right;">42.4500</td>
+<td style="text-align: right;">71.4300</td>
+<td style="text-align: right;">56.1900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2025-03-31</td>
+<td style="text-align: right;">559.3900</td>
+<td style="text-align: right;">35.8400</td>
+<td style="text-align: right;">40.7500</td>
+<td style="text-align: right;">68.5600</td>
+<td style="text-align: right;">54.0400</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2025-02-28</td>
+<td style="text-align: right;">592.3990</td>
+<td style="text-align: right;">35.2300</td>
+<td style="text-align: right;">41.2300</td>
+<td style="text-align: right;">68.4700</td>
+<td style="text-align: right;">54.6700</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2025-01-31</td>
+<td style="text-align: right;">600.0161</td>
+<td style="text-align: right;">31.8900</td>
+<td style="text-align: right;">41.2200</td>
+<td style="text-align: right;">68.3100</td>
+<td style="text-align: right;">53.9700</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-12-31</td>
+<td style="text-align: right;">584.3233</td>
+<td style="text-align: right;">30.4400</td>
+<td style="text-align: right;">40.3000</td>
+<td style="text-align: right;">67.1000</td>
+<td style="text-align: right;">50.8900</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-11-29</td>
+<td style="text-align: right;">598.7531</td>
+<td style="text-align: right;">29.8707</td>
+<td style="text-align: right;">42.6772</td>
+<td style="text-align: right;">68.6140</td>
+<td style="text-align: right;">56.0713</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-10-31</td>
+<td style="text-align: right;">565.0568</td>
+<td style="text-align: right;">31.1025</td>
+<td style="text-align: right;">40.0919</td>
+<td style="text-align: right;">67.0190</td>
+<td style="text-align: right;">58.4926</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">2024-09-30</td>
+<td style="text-align: right;">570.1445</td>
+<td style="text-align: right;">31.3194</td>
+<td style="text-align: right;">40.9701</td>
+<td style="text-align: right;">70.4355</td>
+<td style="text-align: right;">62.4468</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2024-08-30</td>
+<td style="text-align: right;">558.4127</td>
+<td style="text-align: right;">26.0765</td>
+<td style="text-align: right;">39.9538</td>
+<td style="text-align: right;">70.8588</td>
+<td style="text-align: right;">63.9503</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -834,8 +933,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(metrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 0 × 4
-# ℹ 4 variables: strategy &lt;chr&gt;, ann_ret &lt;dbl&gt;, ann_vol &lt;dbl&gt;, sharpe &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 2 × 4
+  strategy         ann_ret ann_vol    sharpe
+  &lt;chr&gt;              &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
+1 Calendar75_25 -0.00899     0.185 -0.0485  
+2 Tactical       0.0000432   0.192  0.000225</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -853,8 +955,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(annual_returns)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 0 × 3
-# ℹ 3 variables: strategy &lt;chr&gt;, year &lt;dbl&gt;, ann_return &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 32 × 3
+   strategy       year ann_return
+   &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;
+ 1 Calendar75_25  2008  -0.0839  
+ 2 Calendar75_25  2009  -0.123   
+ 3 Calendar75_25  2010   0.0165  
+ 4 Calendar75_25  2011   0.0295  
+ 5 Calendar75_25  2012   0.118   
+ 6 Calendar75_25  2013   0.0198  
+ 7 Calendar75_25  2014  -0.00187 
+ 8 Calendar75_25  2015   0.0478  
+ 9 Calendar75_25  2016   0.000612
+10 Calendar75_25  2017   0.0877  
+# ℹ 22 more rows</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -923,8 +1037,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-15"><a href="#cb17-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(cum_by_year)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 0 × 3
-# ℹ 3 variables: strategy &lt;chr&gt;, year &lt;dbl&gt;, cum_return &lt;dbl&gt;</code></pre>
+<pre><code># A tibble: 32 × 3
+   strategy       year cum_return
+   &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;
+ 1 Calendar75_25  2008   -0.0839 
+ 2 Calendar75_25  2009   -0.197  
+ 3 Calendar75_25  2010   -0.183  
+ 4 Calendar75_25  2011   -0.159  
+ 5 Calendar75_25  2012   -0.0599 
+ 6 Calendar75_25  2013   -0.0413 
+ 7 Calendar75_25  2014   -0.0431 
+ 8 Calendar75_25  2015    0.00263
+ 9 Calendar75_25  2016    0.00325
+10 Calendar75_25  2017    0.0913 
+# ℹ 22 more rows</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1059,93 +1185,80 @@ We measured cumulative return, annualized return, and annualized volatility for 
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define only 4 tickers for both equity and resource ETFs</span></span>
-<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>equity_tickers <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Japan        =</span> <span class="st">"EWJ"</span>,</span>
-<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Canada       =</span> <span class="st">"EWC"</span>,</span>
-<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">China        =</span> <span class="st">"FXI"</span>,</span>
-<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">South Korea</span><span class="st">`</span><span class="ot">=</span> <span class="st">"EWY"</span></span>
-<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>resource_tickers <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
-<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">Japan        =</span> <span class="st">"REMX"</span>,</span>
-<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">Canada       =</span> <span class="st">"XEG.TO"</span>,</span>
-<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">China        =</span> <span class="st">"CHIM"</span>,</span>
-<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">South Korea</span><span class="st">`</span><span class="ot">=</span> <span class="st">"KRMA"</span></span>
-<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Fetch &amp; compute returns for all series</span></span>
-<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>fetch_ret <span class="ot">&lt;-</span> <span class="cf">function</span>(sym, name) {</span>
-<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">GET_AV</span>(sym) <span class="sc">%&gt;%</span></span>
-<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(date) <span class="sc">%&gt;%</span></span>
-<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">name :=</span> adjusted_close <span class="sc">/</span> <span class="fu">lag</span>(adjusted_close) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(date, <span class="fu">all_of</span>(name)) <span class="sc">%&gt;%</span></span>
-<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">drop_na</span>()</span>
-<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>equity_rets <span class="ot">&lt;-</span> <span class="fu">imap_dfr</span>(equity_tickers, <span class="cf">function</span>(sym, country) {</span>
-<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fetch_ret</span>(sym, <span class="st">"ret_eq"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">country =</span> country)</span>
-<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>res_rets <span class="ot">&lt;-</span> <span class="fu">imap_dfr</span>(resource_tickers, <span class="cf">function</span>(sym, country) {</span>
-<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fetch_ret</span>(sym, <span class="st">"ret_res"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">country =</span> country)</span>
-<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>})</span>
-<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Quick check: Print heads to verify data is coming through</span></span>
-<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(equity_rets))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] date    ret_eq  country
-&lt;0 rows&gt; (or 0-length row.names)</code></pre>
-</div>
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">head</span>(res_rets))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</details>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] date    ret_res country
-&lt;0 rows&gt; (or 0-length row.names)</code></pre>
-</div>
-<details class="code-fold">
-<summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge equity vs. resource returns</span></span>
-<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>paired <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(equity_rets, res_rets, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"date"</span>, <span class="st">"country"</span>))</span>
-<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute annualized metrics</span></span>
-<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>metrics <span class="ot">&lt;-</span> paired <span class="sc">%&gt;%</span></span>
-<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">%&gt;%</span></span>
-<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
-<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">n            =</span> <span class="fu">n</span>(),</span>
-<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">cum_ret_eq   =</span> <span class="fu">prod</span>(<span class="dv">1</span> <span class="sc">+</span> ret_eq) <span class="sc">-</span> <span class="dv">1</span>,</span>
-<span id="cb25-10"><a href="#cb25-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_ret_eq   =</span> (<span class="dv">1</span> <span class="sc">+</span> cum_ret_eq)<span class="sc">^</span>(<span class="dv">12</span> <span class="sc">/</span> n) <span class="sc">-</span> <span class="dv">1</span>,</span>
-<span id="cb25-11"><a href="#cb25-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_vol_eq   =</span> <span class="fu">sd</span>(ret_eq, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">12</span>),</span>
-<span id="cb25-12"><a href="#cb25-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">cum_ret_res  =</span> <span class="fu">prod</span>(<span class="dv">1</span> <span class="sc">+</span> ret_res) <span class="sc">-</span> <span class="dv">1</span>,</span>
-<span id="cb25-13"><a href="#cb25-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_ret_res  =</span> (<span class="dv">1</span> <span class="sc">+</span> cum_ret_res)<span class="sc">^</span>(<span class="dv">12</span> <span class="sc">/</span> n) <span class="sc">-</span> <span class="dv">1</span>,</span>
-<span id="cb25-14"><a href="#cb25-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_vol_res  =</span> <span class="fu">sd</span>(ret_res, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">12</span>),</span>
-<span id="cb25-15"><a href="#cb25-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups      =</span> <span class="st">"drop"</span></span>
-<span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Order countries for display</span></span>
-<span id="cb25-19"><a href="#cb25-19" aria-hidden="true" tabindex="-1"></a>country_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Japan"</span>, <span class="st">"Canada"</span>, <span class="st">"China"</span>, <span class="st">"South Korea"</span>)</span>
-<span id="cb25-20"><a href="#cb25-20" aria-hidden="true" tabindex="-1"></a>metrics_filtered <span class="ot">&lt;-</span> metrics <span class="sc">%&gt;%</span></span>
-<span id="cb25-21"><a href="#cb25-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(country <span class="sc">%in%</span> country_levels) <span class="sc">%&gt;%</span></span>
-<span id="cb25-22"><a href="#cb25-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">country =</span> <span class="fu">factor</span>(country, <span class="at">levels =</span> country_levels)) <span class="sc">%&gt;%</span></span>
-<span id="cb25-23"><a href="#cb25-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(country)</span>
-<span id="cb25-24"><a href="#cb25-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb25-25"><a href="#cb25-25" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(metrics_filtered, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Annualized Performance Metrics: Equity vs. Resource ETFs (4 Countries)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co">#annualized performance metrics code</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Define only 4 tickers for both equity and resource ETFs</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>equity_tickers <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Japan        =</span> <span class="st">"EWJ"</span>,</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Canada       =</span> <span class="st">"EWC"</span>,</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">China        =</span> <span class="st">"FXI"</span>,</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">South Korea</span><span class="st">`</span><span class="ot">=</span> <span class="st">"EWY"</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>resource_tickers <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">Japan        =</span> <span class="st">"REMX"</span>,</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Canada       =</span> <span class="st">"XEG.TO"</span>,</span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">China        =</span> <span class="st">"CHIM"</span>,</span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">South Korea</span><span class="st">`</span><span class="ot">=</span> <span class="st">"KRMA"</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Fetch &amp; compute returns for all series</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>fetch_ret <span class="ot">&lt;-</span> <span class="cf">function</span>(sym, name) {</span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">GET_AV</span>(sym) <span class="sc">%&gt;%</span></span>
+<span id="cb21-21"><a href="#cb21-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">arrange</span>(date) <span class="sc">%&gt;%</span></span>
+<span id="cb21-22"><a href="#cb21-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="sc">!!</span><span class="at">name :=</span> adjusted_close <span class="sc">/</span> <span class="fu">lag</span>(adjusted_close) <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb21-23"><a href="#cb21-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">select</span>(date, <span class="fu">all_of</span>(name)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-24"><a href="#cb21-24" aria-hidden="true" tabindex="-1"></a>    <span class="fu">drop_na</span>()</span>
+<span id="cb21-25"><a href="#cb21-25" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb21-26"><a href="#cb21-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-27"><a href="#cb21-27" aria-hidden="true" tabindex="-1"></a>equity_rets <span class="ot">&lt;-</span> <span class="fu">imap_dfr</span>(equity_tickers, <span class="cf">function</span>(sym, country) {</span>
+<span id="cb21-28"><a href="#cb21-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fetch_ret</span>(sym, <span class="st">"ret_eq"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">country =</span> country)</span>
+<span id="cb21-29"><a href="#cb21-29" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb21-30"><a href="#cb21-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-31"><a href="#cb21-31" aria-hidden="true" tabindex="-1"></a>res_rets <span class="ot">&lt;-</span> <span class="fu">imap_dfr</span>(resource_tickers, <span class="cf">function</span>(sym, country) {</span>
+<span id="cb21-32"><a href="#cb21-32" aria-hidden="true" tabindex="-1"></a>  <span class="fu">fetch_ret</span>(sym, <span class="st">"ret_res"</span>) <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">country =</span> country)</span>
+<span id="cb21-33"><a href="#cb21-33" aria-hidden="true" tabindex="-1"></a>})</span>
+<span id="cb21-34"><a href="#cb21-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-35"><a href="#cb21-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-36"><a href="#cb21-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-37"><a href="#cb21-37" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge equity vs. resource returns</span></span>
+<span id="cb21-38"><a href="#cb21-38" aria-hidden="true" tabindex="-1"></a>paired <span class="ot">&lt;-</span> <span class="fu">inner_join</span>(equity_rets, res_rets, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"date"</span>, <span class="st">"country"</span>))</span>
+<span id="cb21-39"><a href="#cb21-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-40"><a href="#cb21-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute annualized metrics</span></span>
+<span id="cb21-41"><a href="#cb21-41" aria-hidden="true" tabindex="-1"></a>metrics <span class="ot">&lt;-</span> paired <span class="sc">%&gt;%</span></span>
+<span id="cb21-42"><a href="#cb21-42" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(country) <span class="sc">%&gt;%</span></span>
+<span id="cb21-43"><a href="#cb21-43" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarize</span>(</span>
+<span id="cb21-44"><a href="#cb21-44" aria-hidden="true" tabindex="-1"></a>    <span class="at">n            =</span> <span class="fu">n</span>(),</span>
+<span id="cb21-45"><a href="#cb21-45" aria-hidden="true" tabindex="-1"></a>    <span class="at">cum_ret_eq   =</span> <span class="fu">prod</span>(<span class="dv">1</span> <span class="sc">+</span> ret_eq) <span class="sc">-</span> <span class="dv">1</span>,</span>
+<span id="cb21-46"><a href="#cb21-46" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_ret_eq   =</span> (<span class="dv">1</span> <span class="sc">+</span> cum_ret_eq)<span class="sc">^</span>(<span class="dv">12</span> <span class="sc">/</span> n) <span class="sc">-</span> <span class="dv">1</span>,</span>
+<span id="cb21-47"><a href="#cb21-47" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_vol_eq   =</span> <span class="fu">sd</span>(ret_eq, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">12</span>),</span>
+<span id="cb21-48"><a href="#cb21-48" aria-hidden="true" tabindex="-1"></a>    <span class="at">cum_ret_res  =</span> <span class="fu">prod</span>(<span class="dv">1</span> <span class="sc">+</span> ret_res) <span class="sc">-</span> <span class="dv">1</span>,</span>
+<span id="cb21-49"><a href="#cb21-49" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_ret_res  =</span> (<span class="dv">1</span> <span class="sc">+</span> cum_ret_res)<span class="sc">^</span>(<span class="dv">12</span> <span class="sc">/</span> n) <span class="sc">-</span> <span class="dv">1</span>,</span>
+<span id="cb21-50"><a href="#cb21-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">ann_vol_res  =</span> <span class="fu">sd</span>(ret_res, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">*</span> <span class="fu">sqrt</span>(<span class="dv">12</span>),</span>
+<span id="cb21-51"><a href="#cb21-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups      =</span> <span class="st">"drop"</span></span>
+<span id="cb21-52"><a href="#cb21-52" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb21-53"><a href="#cb21-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-54"><a href="#cb21-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Japan, Canada, China, SK will be displayed</span></span>
+<span id="cb21-55"><a href="#cb21-55" aria-hidden="true" tabindex="-1"></a>country_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Japan"</span>, <span class="st">"Canada"</span>, <span class="st">"China"</span>, <span class="st">"South Korea"</span>)</span>
+<span id="cb21-56"><a href="#cb21-56" aria-hidden="true" tabindex="-1"></a>metrics_filtered <span class="ot">&lt;-</span> metrics <span class="sc">%&gt;%</span></span>
+<span id="cb21-57"><a href="#cb21-57" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(country <span class="sc">%in%</span> country_levels) <span class="sc">%&gt;%</span></span>
+<span id="cb21-58"><a href="#cb21-58" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">country =</span> <span class="fu">factor</span>(country, <span class="at">levels =</span> country_levels)) <span class="sc">%&gt;%</span></span>
+<span id="cb21-59"><a href="#cb21-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(country)</span>
+<span id="cb21-60"><a href="#cb21-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-61"><a href="#cb21-61" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(metrics_filtered, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Annualized Performance Metrics: Equity vs. Resource ETFs (4 Countries)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<table class="caption-top">
+<table class="caption-top table table-sm table-striped small">
 <caption>Annualized Performance Metrics: Equity vs.&nbsp;Resource ETFs (4 Countries)</caption>
 <colgroup>
-<col style="width: 10%">
-<col style="width: 3%">
-<col style="width: 13%">
-<col style="width: 13%">
-<col style="width: 13%">
-<col style="width: 15%">
-<col style="width: 15%">
-<col style="width: 15%">
+<col style="width: 14%">
+<col style="width: 4%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 12%">
+<col style="width: 14%">
+<col style="width: 14%">
+<col style="width: 14%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1160,6 +1273,46 @@ We measured cumulative return, annualized return, and annualized volatility for 
 </tr>
 </thead>
 <tbody>
+<tr class="odd">
+<td style="text-align: left;">Japan</td>
+<td style="text-align: right;">174</td>
+<td style="text-align: right;">1.241</td>
+<td style="text-align: right;">0.057</td>
+<td style="text-align: right;">0.141</td>
+<td style="text-align: right;">-0.762</td>
+<td style="text-align: right;">-0.094</td>
+<td style="text-align: right;">0.341</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Canada</td>
+<td style="text-align: right;">241</td>
+<td style="text-align: right;">2.737</td>
+<td style="text-align: right;">0.068</td>
+<td style="text-align: right;">0.199</td>
+<td style="text-align: right;">0.856</td>
+<td style="text-align: right;">0.031</td>
+<td style="text-align: right;">0.285</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">China</td>
+<td style="text-align: right;">167</td>
+<td style="text-align: right;">-0.225</td>
+<td style="text-align: right;">-0.018</td>
+<td style="text-align: right;">0.237</td>
+<td style="text-align: right;">-0.292</td>
+<td style="text-align: right;">-0.025</td>
+<td style="text-align: right;">0.285</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">South Korea</td>
+<td style="text-align: right;">105</td>
+<td style="text-align: right;">0.239</td>
+<td style="text-align: right;">0.025</td>
+<td style="text-align: right;">0.230</td>
+<td style="text-align: right;">1.753</td>
+<td style="text-align: right;">0.123</td>
+<td style="text-align: right;">0.163</td>
+</tr>
 </tbody>
 </table>
 </div>
@@ -1167,28 +1320,29 @@ We measured cumulative return, annualized return, and annualized volatility for 
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>metrics <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
-<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">country =</span> <span class="fu">c</span>(<span class="st">"Japan"</span>, <span class="st">"Canada"</span>, <span class="st">"China"</span>, <span class="st">"South Korea"</span>),</span>
-<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">ann_ret_eq =</span> <span class="fu">c</span>(<span class="fl">0.058</span>, <span class="fl">0.066</span>, <span class="sc">-</span><span class="fl">0.018</span>, <span class="fl">0.024</span>),</span>
-<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ann_ret_res =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.092</span>, <span class="fl">0.028</span>, <span class="sc">-</span><span class="fl">0.025</span>, <span class="fl">0.125</span>)</span>
-<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Pivot for grouped bars</span></span>
-<span id="cb26-8"><a href="#cb26-8" aria-hidden="true" tabindex="-1"></a>metrics_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(metrics, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"ann_ret"</span>), </span>
-<span id="cb26-9"><a href="#cb26-9" aria-hidden="true" tabindex="-1"></a>                            <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"annualized_return"</span>)</span>
-<span id="cb26-10"><a href="#cb26-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-11"><a href="#cb26-11" aria-hidden="true" tabindex="-1"></a>metrics_long<span class="sc">$</span>type <span class="ot">&lt;-</span> <span class="fu">recode</span>(metrics_long<span class="sc">$</span>type,</span>
-<span id="cb26-12"><a href="#cb26-12" aria-hidden="true" tabindex="-1"></a>                           <span class="at">ann_ret_eq =</span> <span class="st">"Equity ETF"</span>,</span>
-<span id="cb26-13"><a href="#cb26-13" aria-hidden="true" tabindex="-1"></a>                           <span class="at">ann_ret_res =</span> <span class="st">"Resource ETF"</span>)</span>
-<span id="cb26-14"><a href="#cb26-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-15"><a href="#cb26-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(metrics_long, <span class="fu">aes</span>(<span class="at">x =</span> country, <span class="at">y =</span> annualized_return, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
-<span id="cb26-16"><a href="#cb26-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>), <span class="at">width =</span> <span class="fl">0.7</span>, <span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
-<span id="cb26-17"><a href="#cb26-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Equity ETF"</span> <span class="ot">=</span> <span class="st">"#3498db"</span>, <span class="st">"Resource ETF"</span> <span class="ot">=</span> <span class="st">"#e67e22"</span>)) <span class="sc">+</span></span>
-<span id="cb26-18"><a href="#cb26-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Annualized Return by Country"</span>,</span>
-<span id="cb26-19"><a href="#cb26-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Annualized Return"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="st">"ETF Type"</span>) <span class="sc">+</span></span>
-<span id="cb26-20"><a href="#cb26-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>(<span class="at">accuracy =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
-<span id="cb26-21"><a href="#cb26-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
-<span id="cb26-22"><a href="#cb26-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co">#the data below is a result of the annualized performance metrics code</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>metrics <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">country =</span> <span class="fu">c</span>(<span class="st">"Japan"</span>, <span class="st">"Canada"</span>, <span class="st">"China"</span>, <span class="st">"South Korea"</span>),</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ann_ret_eq =</span> <span class="fu">c</span>(<span class="fl">0.058</span>, <span class="fl">0.066</span>, <span class="sc">-</span><span class="fl">0.018</span>, <span class="fl">0.024</span>),</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">ann_ret_res =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.092</span>, <span class="fl">0.028</span>, <span class="sc">-</span><span class="fl">0.025</span>, <span class="fl">0.125</span>)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Pivot for grouped bars</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>metrics_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(metrics, <span class="at">cols =</span> <span class="fu">starts_with</span>(<span class="st">"ann_ret"</span>), </span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>                            <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"annualized_return"</span>)</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>metrics_long<span class="sc">$</span>type <span class="ot">&lt;-</span> <span class="fu">recode</span>(metrics_long<span class="sc">$</span>type,</span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>                           <span class="at">ann_ret_eq =</span> <span class="st">"Equity ETF"</span>,</span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>                           <span class="at">ann_ret_res =</span> <span class="st">"Resource ETF"</span>)</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(metrics_long, <span class="fu">aes</span>(<span class="at">x =</span> country, <span class="at">y =</span> annualized_return, <span class="at">fill =</span> type)) <span class="sc">+</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">position =</span> <span class="fu">position_dodge</span>(<span class="at">width =</span> <span class="fl">0.8</span>), <span class="at">width =</span> <span class="fl">0.7</span>, <span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"Equity ETF"</span> <span class="ot">=</span> <span class="st">"#3498db"</span>, <span class="st">"Resource ETF"</span> <span class="ot">=</span> <span class="st">"#e67e22"</span>)) <span class="sc">+</span></span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Annualized Return by Country"</span>,</span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Annualized Return"</span>, <span class="at">x =</span> <span class="cn">NULL</span>, <span class="at">fill =</span> <span class="st">"ETF Type"</span>) <span class="sc">+</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> scales<span class="sc">::</span><span class="fu">percent_format</span>(<span class="at">accuracy =</span> <span class="dv">1</span>)) <span class="sc">+</span></span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"top"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
@@ -1201,45 +1355,46 @@ We measured cumulative return, annualized return, and annualized volatility for 
 <div class="cell">
 <details class="code-fold">
 <summary>Show the code</summary>
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>vol_data <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">country =</span> <span class="fu">c</span>(<span class="st">"Japan"</span>, <span class="st">"Canada"</span>, <span class="st">"China"</span>, <span class="st">"South Korea"</span>),</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">Equity =</span> <span class="fu">c</span>(<span class="fl">0.142</span>, <span class="fl">0.199</span>, <span class="fl">0.237</span>, <span class="fl">0.230</span>),</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Resource =</span> <span class="fu">c</span>(<span class="fl">0.341</span>, <span class="fl">0.285</span>, <span class="fl">0.285</span>, <span class="fl">0.164</span>)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>vol_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(vol_data, <span class="at">cols =</span> <span class="fu">c</span>(Equity, Resource),</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>                         <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"volatility"</span>)</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The lines between the two points</span></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> vol_data,</span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">y =</span> country, <span class="at">yend =</span> country, <span class="at">x =</span> Equity, <span class="at">xend =</span> Resource),</span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray60"</span>, <span class="at">size =</span> <span class="dv">2</span></span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The points</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(vol_long, type <span class="sc">==</span> <span class="st">"Equity"</span>),</span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> volatility, <span class="at">y =</span> country),</span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#3498db"</span>, <span class="at">size =</span> <span class="dv">5</span></span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(vol_long, type <span class="sc">==</span> <span class="st">"Resource"</span>),</span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> volatility, <span class="at">y =</span> country),</span>
-<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#e67e22"</span>, <span class="at">size =</span> <span class="dv">5</span></span>
-<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
-<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Annualized Volatility by Country: Equity vs Resource ETF"</span>,</span>
-<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Annualized Volatility"</span>,</span>
-<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span></span>
-<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
-<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
-<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
-<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
-<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.36</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">label =</span> <span class="st">"Blue = Equity ETF</span><span class="sc">\n</span><span class="st">Orange = Resource ETF"</span>, <span class="at">color =</span> <span class="st">"gray40"</span>, <span class="at">hjust =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co">#the data below is a result of the annualized performance metrics code</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>vol_data <span class="ot">&lt;-</span> tibble<span class="sc">::</span><span class="fu">tibble</span>(</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">country =</span> <span class="fu">c</span>(<span class="st">"Japan"</span>, <span class="st">"Canada"</span>, <span class="st">"China"</span>, <span class="st">"South Korea"</span>),</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Equity =</span> <span class="fu">c</span>(<span class="fl">0.142</span>, <span class="fl">0.199</span>, <span class="fl">0.237</span>, <span class="fl">0.230</span>),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Resource =</span> <span class="fu">c</span>(<span class="fl">0.341</span>, <span class="fl">0.285</span>, <span class="fl">0.285</span>, <span class="fl">0.164</span>)</span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>vol_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(vol_data, <span class="at">cols =</span> <span class="fu">c</span>(Equity, Resource),</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>                         <span class="at">names_to =</span> <span class="st">"type"</span>, <span class="at">values_to =</span> <span class="st">"volatility"</span>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The lines between the two points</span></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> vol_data,</span>
+<span id="cb23-17"><a href="#cb23-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">y =</span> country, <span class="at">yend =</span> country, <span class="at">x =</span> Equity, <span class="at">xend =</span> Resource),</span>
+<span id="cb23-18"><a href="#cb23-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"gray60"</span>, <span class="at">size =</span> <span class="dv">2</span></span>
+<span id="cb23-19"><a href="#cb23-19" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-20"><a href="#cb23-20" aria-hidden="true" tabindex="-1"></a>  <span class="co"># The points</span></span>
+<span id="cb23-21"><a href="#cb23-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb23-22"><a href="#cb23-22" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(vol_long, type <span class="sc">==</span> <span class="st">"Equity"</span>),</span>
+<span id="cb23-23"><a href="#cb23-23" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> volatility, <span class="at">y =</span> country),</span>
+<span id="cb23-24"><a href="#cb23-24" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#3498db"</span>, <span class="at">size =</span> <span class="dv">5</span></span>
+<span id="cb23-25"><a href="#cb23-25" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-26"><a href="#cb23-26" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(</span>
+<span id="cb23-27"><a href="#cb23-27" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> <span class="fu">filter</span>(vol_long, type <span class="sc">==</span> <span class="st">"Resource"</span>),</span>
+<span id="cb23-28"><a href="#cb23-28" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">x =</span> volatility, <span class="at">y =</span> country),</span>
+<span id="cb23-29"><a href="#cb23-29" aria-hidden="true" tabindex="-1"></a>    <span class="at">color =</span> <span class="st">"#e67e22"</span>, <span class="at">size =</span> <span class="dv">5</span></span>
+<span id="cb23-30"><a href="#cb23-30" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-31"><a href="#cb23-31" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb23-32"><a href="#cb23-32" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Annualized Volatility by Country: Equity vs Resource ETF"</span>,</span>
+<span id="cb23-33"><a href="#cb23-33" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Annualized Volatility"</span>,</span>
+<span id="cb23-34"><a href="#cb23-34" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="cn">NULL</span></span>
+<span id="cb23-35"><a href="#cb23-35" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-36"><a href="#cb23-36" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>(<span class="at">base_size =</span> <span class="dv">14</span>) <span class="sc">+</span></span>
+<span id="cb23-37"><a href="#cb23-37" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(</span>
+<span id="cb23-38"><a href="#cb23-38" aria-hidden="true" tabindex="-1"></a>    <span class="at">legend.position =</span> <span class="st">"none"</span></span>
+<span id="cb23-39"><a href="#cb23-39" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb23-40"><a href="#cb23-40" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">0.36</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">label =</span> <span class="st">"Blue = Equity ETF</span><span class="sc">\n</span><span class="st">Orange = Resource ETF"</span>, <span class="at">color =</span> <span class="st">"gray40"</span>, <span class="at">hjust =</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
 <div>
