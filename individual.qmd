@@ -1,0 +1,977 @@
+---
+title: "Individual Project"
+author: "Salvatore Davi"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    css: |
+      body { background-color: #F5F5DC; }
+    code-fold: true       # <— enable folding
+    code-summary: "Show the code"
+execute:
+  warning: false
+  error:   false
+  message: false
+---
+
+
+**Note:**
+Due to persistent API connection issues with AlphaVantage, some of the graphs shown below were generated using hard-coded results rather than plotting directly from the code in the analysis. The data used in these graphs matches the results produced by the code, but because of frequent disconnections, we were unable to plot them live. Instead, we used the final output from the code to create the visualizations.
+
+
+
+Let me know if you want it more formal or have any other tweaks!
+
+
+# Introduction
+
+For this project, and my two individual questions, I needed to make use of two databases, alphavantage and FRED. Alphavantage allowed me to downloaded the price history for ETFs, and FRED I acquired GDP per nomina & inflation data for each country that was needed to answer the specific questions.
+
+The overarching question we seeked to answer throughout the project is;
+
+How can integrating a diverse mix of international traded funds, in developed or emerging markets boost returns compared to relying solely on U.S. funds, all while meeting individual financial objectives and investment time frames? 
+
+The two questions that I was responsible for are; 
+
+1. To what extent can reallocating between developed and emerging market equities, based on GDP per capita and inflation trends, shield a portfolio from losses during economic downturns? 
+
+2. How does including equities from resource-rich countries (e.g., China, South Korea, Canada) influence portfolio volatility and risk-adjusted returns, and does it offer a meaningful benefit?
+
+
+
+## Importing data
+
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(gganimate)
+library(ggthemes)
+library(httr)
+library(jsonlite)
+library(lubridate)
+
+# setwd("C:/Users/orazz/OneDrive - The City University of New York (1)/MASTER/STA9750-2025-SPRING")
+setwd("C:/Users/salda/OneDrive/Documents/money team")
+FRED_key <- readLines("FRED_key.txt")
+get_fred<- function(id){
+  base_url <- "https://api.stlouisfed.org/fred/series/observations?series_id="
+  res <- GET(paste0(base_url,id,"&api_key=",FRED_key,"&file_type=json"))
+  res_content <- content(res, as = "text", encoding = "UTF-8")
+  json <- fromJSON(res_content)
+  data <-json$observations
+  data <- data |> mutate(value = as.numeric(value),# immediately convert to usable format
+                         date = as.Date(date))
+  return(data)
+}
+
+# key
+AV_key <- readLines("Alphavantage_key.txt")
+
+# Function to get data from Alpha Vantage
+GET_AV <- function(ticker){
+  
+  # Build the URL for the monthly adjusted time series
+  url <- paste0(
+    "https://www.alphavantage.co/query?function=TIME_SERIES_MONTHLY_ADJUSTED",
+    "&symbol=", ticker,
+    "&apikey=", AV_key
+  )
+  
+  # Make the GET request and parse the JSON response
+  res <- GET(url)
+  res_content <- content(res, as = "text", encoding = "UTF-8")
+  j <- fromJSON(res_content, flatten = TRUE)
+  
+  # Extract the "Monthly Adjusted Time Series" data
+  data <- j$`Monthly Adjusted Time Series`
+  
+  # Create empty vectors to store our data
+  close <- c()
+  adjusted_close <- c()
+  low <- c()
+  volume <- c()
+  dividend <- c()
+  
+  # Loop over each element in the data to unpack the values.
+  for(i in seq_along(data)){
+    close <- append(close, data[[i]][["4. close"]])
+    adjusted_close <- append(adjusted_close, data[[i]][["5. adjusted close"]])
+    low <- append(low, data[[i]][["3. low"]])
+    volume <- append(volume, data[[i]][["6. volume"]])
+    dividend <- append(dividend, data[[i]][["7. dividend amount"]])
+  }
+  
+  df <- data.frame(
+    date = as.Date(names(data)),
+    close = as.numeric(close),
+    adjusted_close = as.numeric(adjusted_close),
+    low = as.numeric(low),
+    volume = as.numeric(volume),
+    dividend = as.numeric(dividend)
+  )
+  
+  return(df)
+}
+```
+
+## GDP Per Capita
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+
+series_ids <- c(
+  USA          = "A939RC0Q052SBEA",
+  China        = "PCAGDPCNA646NWDB",
+  Germany      = "PCAGDPDEA646NWDB",
+  India        = "PCAGDPINA646NWDB",
+  Japan        = "PCAGDPJPA646NWDB",
+  UK           = "PCAGDPGBA646NWDB",
+  France       = "PCAGDPFRA646NWDB",
+  Italy        = "PCAGDPITA646NWDB",
+  Mexico       = "PCAGDPMXA646NWDB",   # was Brazil
+  `South Korea`= "PCAGDPKRA646NWDB"
+)
+
+# combine data for 1960 and after
+gdp_pc_long <- series_ids |>
+  imap_dfr(function(id, country) {
+    get_fred(id) |>
+      select(date, value) |>
+      mutate(
+        country = country,
+        gdp_pc  = value
+      ) |>
+      select(date, country, gdp_pc)
+  }) |>
+  filter(date >= as.Date("1960-01-01"))
+
+
+gdp_pc_wide <- gdp_pc_long |>
+  pivot_wider(
+    names_from  = country,
+    values_from = gdp_pc
+  )
+
+
+```
+
+```{r}
+
+gdp_pc_long |>
+  ggplot(aes(x = date, y = gdp_pc, color = country)) +
+  geom_line(size = 1) +
+  labs(
+    title = "GDP per Capita (1960 onward)",
+    subtitle = "GDP, in US$. Not Seasonally Adjusted.",
+    x     = NULL,
+    y     = "GDP per Capita (USD)",
+    color = NULL
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title    = element_text(size = 16, face = "bold"),
+    plot.subtitle = element_text(size = 12),
+    legend.position = "bottom"
+  )
+
+
+```
+
+Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the UK, France, India, Japan, South Korea, and the USA. These countries represent some of the world’s largest economies by GDP, making them essential to our analysis as we explore investment opportunities in international equities linked to these markets.
+
+## Inflation
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+library(knitr)   # <--- Add this!
+
+
+inflation_ids <- c(
+  USA           = "FPCPITOTLZGUSA",
+  China         = "FPCPITOTLZGCHN",
+  Germany       = "FPCPITOTLZGDEU",
+  India         = "FPCPITOTLZGIND",
+  Japan         = "FPCPITOTLZGJPN",
+  UK            = "FPCPITOTLZGGBR",
+  France        = "FPCPITOTLZGFRA",
+  Italy         = "FPCPITOTLZGITA",
+  Mexico        = "FPCPITOTLZGMEX",
+  `South Korea` = "FPCPITOTLZGKOR"
+)
+
+
+inflation_long <- inflation_ids |>
+  imap_dfr(function(id, country) {
+    get_fred(id) |>
+      select(date, value) |>
+      mutate(
+        country   = country,
+        inflation = value
+      ) |>
+      select(date, country, inflation)
+  })
+
+
+inflation_long %>%
+  head(10) %>%
+  kable(caption = "Sample of Inflation Data by Country and Date")
+
+# Plot
+inflation_long |>
+  ggplot(aes(x = date, y = inflation, color = country)) +
+    geom_line(size = 1) +
+    labs(
+      title    = "Annual Consumer-Price Inflation",
+      subtitle = "Inflation, consumer prices (annual % change) for selected economies",
+      x        = NULL,
+      y        = "Inflation Rate (%)",
+      color    = NULL
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title    = element_text(size = 16, face = "bold"),
+      plot.subtitle = element_text(size = 12),
+      legend.position = "bottom"
+    )
+
+```
+Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets.
+
+
+## ETFs for each of the nations
+```{r}
+library(ggplot2)
+
+# Named vector of ETF tickers for each country
+# USA: SPY (S&P 500), China: FXI (iShares China Large-Cap), Germany: EWG (iShares MSCI Germany),
+# India: INDA (iShares MSCI India), Japan: EWJ (iShares MSCI Japan), UK: EWU (iShares MSCI United Kingdom),
+# France: EWQ (iShares MSCI France), Italy: EWI (iShares MSCI Italy)
+etf_tickers <- c(
+  USA     = "SPY",
+  China   = "FXI",
+  Germany = "EWG",
+  India   = "INDA",
+  Japan   = "EWJ",
+  UK      = "EWU",
+  France  = "EWQ",
+  Italy   = "EWI"
+)
+
+# Fetch, tag, and combine ETF price histories
+etf_prices_long <- etf_tickers |>
+  imap_dfr(function(ticker, country) {
+    GET_AV(ticker) |>
+      select(date, adjusted_close) |>
+      mutate(
+        country = country,
+        price   = adjusted_close
+      ) |>
+      select(date, country, price)
+  })
+
+
+# Plot the price history for each ETF
+etf_prices_long |>
+  ggplot(aes(x = date, y = price, color = country)) +
+    geom_line(size = 1) +
+    labs(
+      title    = "ETF Price History by Country",
+      subtitle = "Adjusted closing prices for representative country ETFs",
+      x        = NULL,
+      y        = "Adjusted Close Price (USD)",
+      color    = NULL
+    ) +
+    theme_minimal() +
+    theme(
+      plot.title     = element_text(size = 16, face = "bold"),
+      plot.subtitle  = element_text(size = 12),
+      legend.position = "bottom"
+    )
+
+```
+
+
+```{r}
+# Pivot to wide form so each country is a column
+etf_prices_wide <- etf_prices_long |>
+  pivot_wider(
+    names_from  = country,
+    values_from = price
+  )
+
+# Print the first 10 rows in the console
+head(etf_prices_wide, 10)
+
+# (Optional) For a nicer table in R Markdown or RStudio Viewer:
+# install.packages("knitr")    # if you haven’t already
+library(knitr)
+kable(
+  head(etf_prices_wide, 10),
+  caption = "ETF Adjusted Closing Prices by Country (First 10 Observations)"
+)
+
+
+```
+
+```{r}
+
+#| echo: true
+#| results: 'hide'
+#| message: false
+#| warning: false
+
+# Data setup, no output!
+# 1) Provenance (no need to print these in output)
+# series_ids
+# inflation_ids
+
+# 2) Dataset dimensions (remove or comment out if you don't want to show)
+# cat("GDP data:    ", dim(gdp_pc_long)[1], "rows and", dim(gdp_pc_long)[2], "columns\n")
+# cat("Inflation data:", dim(inflation_long)[1], "rows and", dim(inflation_long)[2], "columns\n")
+
+# 3) Country coverage
+# cat("Countries in GDP data:    ", paste(sort(unique(gdp_pc_long$country)), collapse=", "), "\n\n")
+# cat("Countries in Inflation data:", paste(sort(unique(inflation_long$country)), collapse=", "), "\n\n")
+
+# 4) Structure of each data frame
+# str(gdp_pc_long)
+# str(inflation_long)
+
+# 5) Head & tail of the time series
+# head(gdp_pc_long)
+# tail(gdp_pc_long)
+# head(inflation_long)
+# tail(inflation_long)
+
+# 6) Observations per country & date range
+gdp_pc_long %>%
+  group_by(country) %>%
+  summarize(
+    n_obs      = n(),
+    start_date = min(date),
+    end_date   = max(date),
+    .groups    = "drop"
+  ) %>%
+  arrange(country) -> gdp_coverage
+
+# Only print the table you want:
+library(knitr)
+kable(gdp_coverage, caption = "GDP Data Coverage by Country")
+
+inflation_long %>%
+  group_by(country) %>%
+  summarize(
+    n_obs      = n(),
+    start_date = min(date),
+    end_date   = max(date),
+    .groups    = "drop"
+  ) %>%
+  arrange(country) -> infl_coverage
+
+kable(infl_coverage, caption = "Inflation Data Coverage by Country")
+```
+
+
+
+
+# Analysis
+
+```{r}
+library(purrr)
+library(PerformanceAnalytics)  # for return calculations
+
+# up at the top of your script
+library(TTR)               # <- gives you ROC()
+library(PerformanceAnalytics)
+library(zoo)
+
+etf_ret <- etf_prices_wide |>
+  arrange(date) |>
+  mutate(across(-date, ~ ROC(.x, type = "discrete"))) |>
+  tidyr::drop_na()
+# 1b) Compute rolling annual GDP-per-capita growth per country
+#    (using quarterly GDP PC → annualized % change)
+gdp_growth <- gdp_pc_wide |>
+  arrange(date) |>
+  mutate(across(-date, ~ (./lag(., 4) - 1) * 100, .names = "{.col}_growth")) |>
+  select(date, ends_with("_growth")) |>
+  drop_na()
+```
+
+
+# QUESTION 2- Rebalancing Equities
+For this mini-question, we set out to determine whether a traditional 75/25 split between developed and emerging market equities is more beneficial than a signal-based rebalancing approach.
+
+To do this, we leveraged financial data from both Alpha Vantage and FRED. From Alpha Vantage, we used VEA and VWO ETFs as proxies for developed and emerging markets, respectively. From FRED, we collected GDP per Capita and annual consumer price inflation data for ten countries, classifying them as developed or emerging based on the MSCI index (6 developed, 4 emerging). While these nations are among the largest and most representative globally, we limited our universe due to free API restrictions and the scope of our analysis.
+
+We began by analyzing a simple portfolio: 75% developed market exposure, 25% emerging market exposure. This allocation is consistent with research suggesting an optimal range of 20–25% emerging markets for long-term portfolios.
+
+For the signal-based strategy, we introduced dynamic rebalancing triggers. Specifically, if average GDP growth for a group was negative or inflation exceeded 4%, we treated this as a signal for economic stress. In such cases, we halved our allocation to emerging markets and reallocated the difference to developed markets—always maintaining full equity exposure and never shifting to cash.
+
+ 
+
+```{r}
+
+
+# 4) Build annualized GDP per capita table (with USA annual average)
+series_ids <- c(
+  USA          = 'A939RC0Q052SBEA',
+  China        = 'PCAGDPCNA646NWDB',
+  Germany      = 'PCAGDPDEA646NWDB',
+  India        = 'PCAGDPINA646NWDB',
+  Japan        = 'PCAGDPJPA646NWDB',
+  UK           = 'PCAGDPGBA646NWDB',
+  France       = 'PCAGDPFRA646NWDB',
+  Italy        = 'PCAGDPITA646NWDB',
+  Mexico       = 'PCAGDPMXA646NWDB',
+  `South Korea`= 'PCAGDPKRA646NWDB'
+)
+
+# a) Annualize USA: average all four quarters per year
+usa_annual <- get_fred(series_ids['USA']) %>%
+  rename(gdp_pc = value) %>%
+  mutate(year = lubridate::year(date)) %>%
+  group_by(year) %>%
+  summarize(
+    gdp_pc = mean(gdp_pc, na.rm = TRUE),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    country = 'USA',
+    date    = as.Date(paste0(year, '-12-31'))
+  ) %>%
+  select(date, country, gdp_pc)
+
+# b) Fetch other (annual) series
+other_ids <- series_ids[names(series_ids) != 'USA']
+rest_annual <- other_ids |>
+  imap_dfr(function(id, country) {
+    get_fred(id) |>
+      rename(gdp_pc = value) |>
+      mutate(country = country)
+  })
+
+# c) Combine into single annual data frame
+gdp_pc_long <- bind_rows(usa_annual, rest_annual) %>%
+  filter(date >= as.Date('1960-01-01'))
+
+# 5) Build inflation long table (added Mexico & South Korea)
+inflation_ids <- c(
+  USA           = 'FPCPITOTLZGUSA',
+  China         = 'FPCPITOTLZGCHN',
+  Germany       = 'FPCPITOTLZGDEU',
+  India         = 'FPCPITOTLZGIND',
+  Japan         = 'FPCPITOTLZGJPN',
+  UK            = 'FPCPITOTLZGGBR',
+  France        = 'FPCPITOTLZGFRA',
+  Italy         = 'FPCPITOTLZGITA',
+  Mexico        = 'FPCPITOTLZGMEX',
+  `South Korea` = 'FPCPITOTLZGKOR'
+)
+
+inflation_long <- inflation_ids |>
+  imap_dfr(function(id, country) {
+    get_fred(id) |>
+      rename(inflation = value) |>
+      mutate(country = country)
+  })
+
+# 6) Fetch VEA & VWO monthly returns
+vea_ret <- GET_AV("VEA") |>
+  arrange(date) |>
+  mutate(ret_dev = adjusted_close / lag(adjusted_close) - 1) |>
+  select(date, ret_dev) |>
+  drop_na()
+
+vwo_ret <- GET_AV("VWO") |>
+  arrange(date) |>
+  mutate(ret_emg = adjusted_close / lag(adjusted_close) - 1) |>
+  select(date, ret_emg) |>
+  drop_na()
+
+# 7) Compute quarterly EM & DM macro signals
+dev_countries <- c("USA","Japan","UK","France","Germany","Italy")
+emg_countries <- c("China","India","Mexico","South Korea")
+
+gdp_growth_country <- gdp_pc_long |>
+  arrange(country, date) |>
+  group_by(country) |>
+  mutate(
+    gdp_growth = (gdp_pc / lag(gdp_pc, 4) - 1) * 100,
+    quarter    = as.yearqtr(date)
+  ) |>
+  filter(!is.na(gdp_growth)) |>
+  ungroup()
+
+gdp_emg_q <- gdp_growth_country |>
+  filter(country %in% emg_countries) |>
+  group_by(quarter) |>
+  summarize(gdp_emg = mean(gdp_growth, na.rm=TRUE), .groups="drop")
+
+gdp_dev_q <- gdp_growth_country |>
+  filter(country %in% dev_countries) |>
+  group_by(quarter) |>
+  summarize(gdp_dev = mean(gdp_growth, na.rm=TRUE), .groups="drop")
+
+infl_long_q <- inflation_long |>
+  mutate(quarter = as.yearqtr(date))
+
+infl_emg_q <- infl_long_q |>
+  filter(country %in% emg_countries) |>
+  group_by(quarter) |>
+  slice_tail(n = 1) |>
+  summarize(infl_emg = mean(inflation, na.rm=TRUE), .groups="drop")
+
+infl_dev_q <- infl_long_q |>
+  filter(country %in% dev_countries) |>
+  group_by(quarter) |>
+  slice_tail(n = 1) |>
+  summarize(infl_dev = mean(inflation, na.rm=TRUE), .groups="drop")
+
+signals <- gdp_emg_q |>
+  left_join(infl_emg_q, by="quarter") |>
+  left_join(gdp_dev_q,   by="quarter") |>
+  left_join(infl_dev_q,  by="quarter")
+
+# 8) Build monthly table with signals
+sig_monthly <- vea_ret |>
+  left_join(vwo_ret, by="date") |>
+  mutate(quarter = as.yearqtr(date)) |>
+  left_join(signals, by="quarter") |>
+  drop_na(gdp_emg, infl_emg, gdp_dev, infl_dev)
+
+# 9) Calendar vs. Tactical strategies, starting at 75/25
+infl_thr <- 4
+
+baseline <- sig_monthly |>
+  mutate(
+    wt_vea    = 0.75,
+    wt_vwo    = 0.25,
+    strat_ret = wt_vea * ret_dev + wt_vwo * ret_emg
+  )
+
+tactical <- sig_monthly |>
+  mutate(
+    emg_down = (gdp_emg < 0) | (infl_emg > infl_thr),
+    dev_down = (gdp_dev < 0) | (infl_dev > infl_thr),
+    emg_down = replace_na(emg_down, FALSE),
+    dev_down = replace_na(dev_down, FALSE),
+
+    wt_vwo = 0.25,
+    wt_vea = 0.75,
+
+    wt_vwo = if_else(emg_down, wt_vwo * 0.5, wt_vwo),
+    wt_vea = 1 - wt_vwo,
+
+    wt_vea = if_else(dev_down, wt_vea * 0.5, wt_vea),
+    wt_vwo = 1 - wt_vea,
+
+    strat_ret = wt_vea * ret_dev + wt_vwo * ret_emg
+  )
+
+# 10) Combine, plot & metrics
+df <- bind_rows(
+  Calendar75_25 = baseline  |> select(date, strat_ret),
+  Tactical      = tactical |> select(date, strat_ret),
+  .id = "strategy"
+)
+
+
+
+metrics <- df |>
+  group_by(strategy) |>
+  summarize(
+    n_months = n(),
+    cum_ret  = prod(1 + strat_ret) - 1,
+    ann_ret  = (1 + cum_ret)^(12 / n_months) - 1,
+    ann_vol  = sd(strat_ret, na.rm=TRUE) * sqrt(12),
+    sharpe   = ann_ret / ann_vol,
+    .groups  = "drop"
+  ) |>
+  select(strategy, ann_ret, ann_vol, sharpe)
+
+print(metrics)
+
+```
+
+```{r}
+
+annual_returns <- df %>%
+  mutate(year = year(date)) %>%
+  group_by(strategy, year) %>%
+  summarize(
+    # Compound all monthly returns within each year
+    ann_return = prod(1 + strat_ret, na.rm = TRUE) - 1,
+    .groups = "drop"
+  )
+
+print(annual_returns)
+
+
+ggplot(annual_returns, aes(x = factor(year), y = ann_return, fill = strategy)) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width    = 0.7,
+    color    = "white"
+  ) +
+  geom_text(
+    aes(
+      label = scales::percent(ann_return, accuracy = 0.1),
+      # push positives up, negatives down
+      vjust = ifelse(ann_return >= 0, -0.3, 1.2),
+      # align tilted text appropriately
+      hjust = ifelse(ann_return >= 0, 0, 1)
+    ),
+    position = position_dodge(width = 0.8),
+    angle    = 45,
+    size     = 3
+  ) +
+  scale_fill_manual(
+    values = c("Calendar75_25" = "#1f77b4", "Tactical" = "#ff7f0e"),
+    name   = "Strategy"
+  ) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0.2, 0.2))  # add space above and below bars
+  ) +
+  labs(
+    title = "Annualized Returns by Strategy (Calendar 75/25 vs Tactical)",
+    x     = "Year",
+    y     = "Annual Return"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(
+    axis.text.x     = element_text(angle = 45, hjust = 1),
+    legend.position = "top"
+  )
+
+
+```
+
+```{r}
+
+
+# Compute end-of-year cumulative returns for each strategy
+cum_by_year <- df %>%
+  arrange(date) %>%
+  group_by(strategy) %>%
+  # running cumulative return at each month
+  mutate(cum = cumprod(1 + strat_ret) - 1,
+         year = year(date)) %>%
+  # then grab the last cum value in each calendar year
+  group_by(strategy, year) %>%
+  summarize(
+    cum_return = last(cum[order(date)]),
+    .groups    = "drop"
+  )
+
+print(cum_by_year)
+
+
+
+
+```
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# 1. Hard-coded data (copying your results)
+cum_by_year <- tribble(
+  ~strategy,        ~year, ~cum_return,
+  "Calendar75_25", 2008, -0.0839466501,
+  "Calendar75_25", 2009, -0.1966708636,
+  "Calendar75_25", 2010, -0.1834129713,
+  "Calendar75_25", 2011, -0.1593114433,
+  "Calendar75_25", 2012, -0.0599281607,
+  "Calendar75_25", 2013, -0.0413321193,
+  "Calendar75_25", 2014, -0.0431277024,
+  "Calendar75_25", 2015,  0.0026323671,
+  "Calendar75_25", 2016,  0.0032463762,
+  "Calendar75_25", 2017,  0.0912565940,
+  "Calendar75_25", 2018,  0.0899859287,
+  "Calendar75_25", 2019,  0.2091370718,
+  "Calendar75_25", 2020, -0.0819049617,
+  "Calendar75_25", 2021, -0.0414122633,
+  "Calendar75_25", 2022, -0.0908064522,
+  "Calendar75_25", 2023, -0.0354800830,
+  "Tactical",     2008, -0.0816813142,
+  "Tactical",     2009, -0.1946842868,
+  "Tactical",     2010, -0.1813936086,
+  "Tactical",     2011, -0.1559693232,
+  "Tactical",     2012, -0.0478086159,
+  "Tactical",     2013, -0.0289728317,
+  "Tactical",     2014, -0.0307915636,
+  "Tactical",     2015,  0.0035041152,
+  "Tactical",     2016,  0.0332422979,
+  "Tactical",     2017,  0.1364421381,
+  "Tactical",     2018,  0.1501227318,
+  "Tactical",     2019,  0.2758476927,
+  "Tactical",     2020, -0.0312517384,
+  "Tactical",     2021,  0.0114750268,
+  "Tactical",     2022, -0.0504034114,
+  "Tactical",     2023,  0.0001729995
+)
+
+# 2. Friendlier legend names
+cum_by_year <- cum_by_year %>%
+  mutate(
+    strategy = recode(strategy,
+      "Calendar75_25" = "Developed/Emerging 75/25 Split",
+      "Tactical" = "Rebalanced"
+    )
+  )
+
+# 3. Plot without geom_text
+ggplot(cum_by_year, aes(x = factor(year), y = cum_return, fill = strategy)) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width    = 0.7,
+    color    = "white"
+  ) +
+  scale_fill_manual(
+    values = c(
+      "Developed/Emerging 75/25 Split" = "#1f77b4",
+      "Rebalanced" = "#ff7f0e"
+    ),
+    name = "Strategy"
+  ) +
+  scale_y_continuous(
+    labels = scales::percent_format(accuracy = 1),
+    expand = expansion(mult = c(0.2, 0.2))
+  ) +
+  labs(
+    title = "Cumulative Returns by Strategy (End-of-Year)",
+    x     = "Year",
+    y     = "Cumulative Return"
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    axis.text.x     = element_text(angle = 45, hjust = 1),
+    legend.position = "top"
+  )
+
+
+
+```
+**Key Findings**
+
+- The **constant 75/25 split strategy** lost about 0.9% per year on average over the last 15 years.
+- The **signal-based (rebalanced) strategy** roughly broke even, with an average return near zero.
+
+**Takeaway:**  
+While rebalancing using GDP and inflation signals helped avoid some losses during downturns, neither strategy delivered strong growth compared to benchmarks like SPY or broader international ETFs that include the U.S. In recent years, simply shifting between developed and emerging markets based on these macro signals did not offer a significant performance edge.
+
+
+
+
+
+
+```{r}
+
+gdp_summary <- gdp_pc_long %>%
+  group_by(country) %>%
+  summarize(
+    n_obs = n(),
+    start = min(date),
+    end   = max(date),
+    .groups = "drop"
+  )
+
+infl_summary <- inflation_long %>%
+  group_by(country) %>%
+  summarize(
+    n_obs = n(),
+    start = min(date),
+    end   = max(date),
+    .groups = "drop"
+  )
+
+
+```
+
+# QUESTION 3 - Investing In Resource-Rich Markets
+
+In this section, we investigate whether investing in resource-based ETFs delivers superior returns compared to broad market ETFs for selected resource-rich nations.
+
+We focused on four countries—Canada, China, Japan, and South Korea—where we obtained both a broad market ETF (tracking the national stock market) and a specialized resource ETF (focusing on sectors like mining, energy, or materials that are especially relevant to each economy). For example, Canada’s XEG.TO ETF concentrates on energy production (including oil and natural gas), which aligns closely with Canada’s export-driven resource economy.
+
+- **Data Coverage:**  
+  Data coverage varies across countries due to differences in ETF inception dates. Canada’s ETFs have the most historical data available, while South Korea’s ETFs have the shortest history (105 observations).
+
+- **Volatility and Metrics:**  
+  We measured cumulative return, annualized return, and annualized volatility for each ETF. Resource-based ETFs tend to exhibit higher volatility, especially in Japan, Canada, and China, reflecting the cyclical and commodity-driven nature of these sectors.
+
+
+```{r}
+# Define only 4 tickers for both equity and resource ETFs
+equity_tickers <- c(
+  Japan        = "EWJ",
+  Canada       = "EWC",
+  China        = "FXI",
+  `South Korea`= "EWY"
+)
+
+resource_tickers <- c(
+  Japan        = "REMX",
+  Canada       = "XEG.TO",
+  China        = "CHIM",
+  `South Korea`= "KRMA"
+)
+
+# Fetch & compute returns for all series
+fetch_ret <- function(sym, name) {
+  GET_AV(sym) %>%
+    arrange(date) %>%
+    mutate(!!name := adjusted_close / lag(adjusted_close) - 1) %>%
+    select(date, all_of(name)) %>%
+    drop_na()
+}
+
+equity_rets <- imap_dfr(equity_tickers, function(sym, country) {
+  fetch_ret(sym, "ret_eq") %>% mutate(country = country)
+})
+
+res_rets <- imap_dfr(resource_tickers, function(sym, country) {
+  fetch_ret(sym, "ret_res") %>% mutate(country = country)
+})
+
+# Quick check: Print heads to verify data is coming through
+print(head(equity_rets))
+print(head(res_rets))
+
+# Merge equity vs. resource returns
+paired <- inner_join(equity_rets, res_rets, by = c("date", "country"))
+
+# Compute annualized metrics
+metrics <- paired %>%
+  group_by(country) %>%
+  summarize(
+    n            = n(),
+    cum_ret_eq   = prod(1 + ret_eq) - 1,
+    ann_ret_eq   = (1 + cum_ret_eq)^(12 / n) - 1,
+    ann_vol_eq   = sd(ret_eq, na.rm = TRUE) * sqrt(12),
+    cum_ret_res  = prod(1 + ret_res) - 1,
+    ann_ret_res  = (1 + cum_ret_res)^(12 / n) - 1,
+    ann_vol_res  = sd(ret_res, na.rm = TRUE) * sqrt(12),
+    .groups      = "drop"
+  )
+
+# Order countries for display
+country_levels <- c("Japan", "Canada", "China", "South Korea")
+metrics_filtered <- metrics %>%
+  filter(country %in% country_levels) %>%
+  mutate(country = factor(country, levels = country_levels)) %>%
+  arrange(country)
+
+knitr::kable(metrics_filtered, digits = 3, caption = "Annualized Performance Metrics: Equity vs. Resource ETFs (4 Countries)")
+
+
+```
+
+
+
+
+```{r}
+
+
+metrics <- tibble::tibble(
+  country = c("Japan", "Canada", "China", "South Korea"),
+  ann_ret_eq = c(0.058, 0.066, -0.018, 0.024),
+  ann_ret_res = c(-0.092, 0.028, -0.025, 0.125)
+)
+
+# Pivot for grouped bars
+metrics_long <- pivot_longer(metrics, cols = starts_with("ann_ret"), 
+                            names_to = "type", values_to = "annualized_return")
+
+metrics_long$type <- recode(metrics_long$type,
+                           ann_ret_eq = "Equity ETF",
+                           ann_ret_res = "Resource ETF")
+
+ggplot(metrics_long, aes(x = country, y = annualized_return, fill = type)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7, color = "white") +
+  scale_fill_manual(values = c("Equity ETF" = "#3498db", "Resource ETF" = "#e67e22")) +
+  labs(title = "Annualized Return by Country",
+       y = "Annualized Return", x = NULL, fill = "ETF Type") +
+  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "top")
+
+
+```
+
+
+```{r}
+
+vol_data <- tibble::tibble(
+  country = c("Japan", "Canada", "China", "South Korea"),
+  Equity = c(0.142, 0.199, 0.237, 0.230),
+  Resource = c(0.341, 0.285, 0.285, 0.164)
+)
+
+
+vol_long <- pivot_longer(vol_data, cols = c(Equity, Resource),
+                         names_to = "type", values_to = "volatility")
+
+
+ggplot() +
+  # The lines between the two points
+  geom_segment(
+    data = vol_data,
+    aes(y = country, yend = country, x = Equity, xend = Resource),
+    color = "gray60", size = 2
+  ) +
+  # The points
+  geom_point(
+    data = filter(vol_long, type == "Equity"),
+    aes(x = volatility, y = country),
+    color = "#3498db", size = 5
+  ) +
+  geom_point(
+    data = filter(vol_long, type == "Resource"),
+    aes(x = volatility, y = country),
+    color = "#e67e22", size = 5
+  ) +
+  labs(
+    title = "Annualized Volatility by Country: Equity vs Resource ETF",
+    x = "Annualized Volatility",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(
+    legend.position = "none"
+  ) +
+  annotate("text", x = 0.36, y = 4, label = "Blue = Equity ETF\nOrange = Resource ETF", color = "gray40", hjust = 0)
+
+
+```
+
+
+- **Key Findings:**  
+  - *South Korea’s resource ETF (KRMA)* stands out, with an annualized return of **12.4%**, compared to just **2.4%** for the country’s broad market ETF.
+  - In contrast, resource-focused ETFs in China and Japan produced flatter returns, trailing their broad market counterparts.
+  - Overall, the results suggest that investing in resource-driven ETFs does **not** consistently provide an advantage over broad market ETFs, and may come with higher risk.
+
+- **Limitations:**  
+  - This analysis does not account for real-world factors such as management fees, bid-ask spreads, or liquidity.
+- We had to limit to 4 nations due to issues with API, need more countries for more accurate analysis.
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
