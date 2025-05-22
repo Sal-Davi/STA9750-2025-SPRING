@@ -141,6 +141,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#analysis" id="toc-analysis" class="nav-link" data-scroll-target="#analysis">Analysis</a></li>
   <li><a href="#question-2--rebalancing-equities" id="toc-question-2--rebalancing-equities" class="nav-link" data-scroll-target="#question-2--rebalancing-equities">QUESTION 2- Rebalancing Equities</a></li>
   <li><a href="#question-3---investing-in-resource-rich-markets" id="toc-question-3---investing-in-resource-rich-markets" class="nav-link" data-scroll-target="#question-3---investing-in-resource-rich-markets">QUESTION 3 - Investing In Resource-Rich Markets</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a>
+  <ul class="collapse">
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways"><strong>Key Takeaways</strong></a></li>
+  <li><a href="#future-considerations-study" id="toc-future-considerations-study" class="nav-link" data-scroll-target="#future-considerations-study"><strong>Future Considerations &amp; Study</strong></a></li>
+  </ul></li>
   </ul>
 </nav>
     </div>
@@ -1084,17 +1089,17 @@ We measured cumulative return, annualized return, and annualized volatility for 
 <span id="cb15-61"><a href="#cb15-61" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(metrics_filtered, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Annualized Performance Metrics: Equity vs. Resource ETFs (4 Countries)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
+<table class="caption-top">
 <caption>Annualized Performance Metrics: Equity vs.&nbsp;Resource ETFs (4 Countries)</caption>
 <colgroup>
-<col style="width: 14%">
-<col style="width: 4%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 10%">
+<col style="width: 3%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1109,46 +1114,6 @@ We measured cumulative return, annualized return, and annualized volatility for 
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;">Japan</td>
-<td style="text-align: right;">174</td>
-<td style="text-align: right;">1.241</td>
-<td style="text-align: right;">0.057</td>
-<td style="text-align: right;">0.141</td>
-<td style="text-align: right;">-0.762</td>
-<td style="text-align: right;">-0.094</td>
-<td style="text-align: right;">0.341</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Canada</td>
-<td style="text-align: right;">241</td>
-<td style="text-align: right;">2.737</td>
-<td style="text-align: right;">0.068</td>
-<td style="text-align: right;">0.199</td>
-<td style="text-align: right;">0.856</td>
-<td style="text-align: right;">0.031</td>
-<td style="text-align: right;">0.285</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">China</td>
-<td style="text-align: right;">167</td>
-<td style="text-align: right;">-0.225</td>
-<td style="text-align: right;">-0.018</td>
-<td style="text-align: right;">0.237</td>
-<td style="text-align: right;">-0.292</td>
-<td style="text-align: right;">-0.025</td>
-<td style="text-align: right;">0.285</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">South Korea</td>
-<td style="text-align: right;">105</td>
-<td style="text-align: right;">0.239</td>
-<td style="text-align: right;">0.025</td>
-<td style="text-align: right;">0.230</td>
-<td style="text-align: right;">1.753</td>
-<td style="text-align: right;">0.123</td>
-<td style="text-align: right;">0.163</td>
-</tr>
 </tbody>
 </table>
 </div>
@@ -1253,8 +1218,34 @@ We measured cumulative return, annualized return, and annualized volatility for 
 </ul></li>
 <li>We had to limit to 4 nations due to issues with API, need more countries for more accurate analysis.</li>
 </ul>
+</section>
+<section id="conclusion" class="level1">
+<h1>Conclusion</h1>
+<hr>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways"><strong>Key Takeaways</strong></h2>
+<p><strong>Is investing in international equities beneficial?</strong><br>
+Our findings show that international equities can play a useful role in portfolio diversification, but the benefits depend on how they are included and managed.</p>
+<ul>
+<li><p>Maintaining allocations to both developed (VEA) and emerging (VWO) market ETFs helps investors access international opportunities, but our results indicate that developed market exposure (VEA) is preferable due to stronger historical performance.</p></li>
+<li><p>Investors should be cautious about overweighting international equities. Based on our analysis, exposure to international funds should generally be limited to around 20%, as U.S. markets (SPY) have outperformed global peers in recent decades.</p></li>
+<li><p>Adding bonds and commodity ETFs provides the greatest stabilizing effect, reducing portfolio volatility during turbulent periods.</p></li>
+<li><p>Dynamic rebalancing (such as shifting between developed and emerging markets in response to GDP or inflation signals) did not provide significant outperformance compared to a fixed allocation, especially during global recessions.</p></li>
+<li><p>Resource-only ETFs may offer unique upside potential for specific countries (e.g., South Korea), but they tend to be more volatile and inconsistent compared to broad-market ETFs. On balance, maintaining diversified exposure through VEA and VWO remains more beneficial for most investors.</p></li>
+</ul>
+</section>
+<section id="future-considerations-study" class="level2">
+<h2 class="anchored" data-anchor-id="future-considerations-study"><strong>Future Considerations &amp; Study</strong></h2>
+<p><strong>Directions for Further Research:</strong><br>
+This project sets the stage for future exploration into international investing.<br>
+- Future studies could expand the analysis to include more asset classes such as currencies or cryptocurrencies, which may offer additional diversification benefits.</p>
+<ul>
+<li><p>Incorporating a larger set of countries—especially those with higher GDP or different economic structures—could yield deeper insights into global rebalancing strategies.</p></li>
+<li><p>It would be valuable to compare resource-rich countries’ performance during economic downturns versus service-oriented economies, to determine when (and if) resource-driven investing truly adds value.</p></li>
+</ul>
 
 
+</section>
 </section>
 
 </main> <!-- /main -->

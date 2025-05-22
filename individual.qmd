@@ -997,6 +997,38 @@ ggplot() +
   - This analysis does not account for real-world factors such as management fees, bid-ask spreads, or liquidity.
 - We had to limit to 4 nations due to issues with API, need more countries for more accurate analysis.
 
+# Conclusion
+
+
+---
+
+## **Key Takeaways**
+
+**Is investing in international equities beneficial?**  
+  Our findings show that international equities can play a useful role in portfolio diversification, but the benefits depend on how they are included and managed. 
+  
+  - Maintaining allocations to both developed (VEA) and emerging (VWO) market ETFs helps investors access international opportunities, but our results indicate that developed market exposure (VEA) is preferable due to stronger historical performance.
+  
+  - Investors should be cautious about overweighting international equities. Based on our analysis, exposure to international funds should generally be limited to around 20%, as U.S. markets (SPY) have outperformed global peers in recent decades.
+  
+  - Adding bonds and commodity ETFs provides the greatest stabilizing effect, reducing portfolio volatility during turbulent periods.
+  
+  - Dynamic rebalancing (such as shifting between developed and emerging markets in response to GDP or inflation signals) did not provide significant outperformance compared to a fixed allocation, especially during global recessions.
+  
+  - Resource-only ETFs may offer unique upside potential for specific countries (e.g., South Korea), but they tend to be more volatile and inconsistent compared to broad-market ETFs. On balance, maintaining diversified exposure through VEA and VWO remains more beneficial for most investors.
+
+
+
+## **Future Considerations & Study**
+
+**Directions for Further Research:**  
+  This project sets the stage for future exploration into international investing.  
+  - Future studies could expand the analysis to include more asset classes such as currencies or cryptocurrencies, which may offer additional diversification benefits.
+  
+  - Incorporating a larger set of countries—especially those with higher GDP or different economic structures—could yield deeper insights into global rebalancing strategies.
+  
+  - It would be valuable to compare resource-rich countries' performance during economic downturns versus service-oriented economies, to determine when (and if) resource-driven investing truly adds value.
+
 
 ```{r}
 
