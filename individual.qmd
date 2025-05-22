@@ -162,20 +162,26 @@ gdp_pc_wide <- gdp_pc_long |>
 ```
 
 ```{r}
+library(ggbump)
+library(dplyr)
 
-gdp_pc_long |>
-  ggplot(aes(x = date, y = gdp_pc, color = country)) +
-  geom_line(size = 1) +
+gdp_rank <- gdp_pc_long |>
+  group_by(date) |>
+  mutate(rank = rank(-gdp_pc)) |>
+  ungroup()
+
+ggplot(gdp_rank, aes(x = date, y = rank, color = country)) +
+  geom_bump(size = 1.4, smooth = 10) +
+  scale_y_reverse(breaks = 1:length(unique(gdp_rank$country)), name = "Rank (1 = Highest GDP/capita)") +
   labs(
-    title = "GDP per Capita (1960 onward)",
-    subtitle = "GDP, in US$. Not Seasonally Adjusted.",
-    x     = NULL,
-    y     = "GDP per Capita (USD)",
-    color = NULL
+    title = "Ranking of GDP per Capita by Country",
+    subtitle = "Tracks how countries rise or fall in GDP per capita ranking.",
+    x = NULL,
+    color = "Country"
   ) +
-  theme_minimal() +
+  theme_minimal(base_size = 13) +
   theme(
-    plot.title    = element_text(size = 16, face = "bold"),
+    plot.title = element_text(size = 16, face = "bold"),
     plot.subtitle = element_text(size = 12),
     legend.position = "bottom"
   )
@@ -187,61 +193,41 @@ Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the
 
 ## Inflation
 ```{r}
+library(lubridate)
+library(ggplot2)
 library(dplyr)
 library(tidyr)
-library(ggplot2)
-library(purrr)
-library(knitr)   # <--- Add this!
+library(forcats)
+library(viridis) 
+
+# Prepare data: Yearly average inflation for each country
+inflation_heatmap <- inflation_long %>%
+  mutate(year = year(date)) %>%
+  group_by(country, year) %>%
+  summarize(inflation = mean(inflation, na.rm = TRUE), .groups = "drop")
 
 
-inflation_ids <- c(
-  USA           = "FPCPITOTLZGUSA",
-  China         = "FPCPITOTLZGCHN",
-  Germany       = "FPCPITOTLZGDEU",
-  India         = "FPCPITOTLZGIND",
-  Japan         = "FPCPITOTLZGJPN",
-  UK            = "FPCPITOTLZGGBR",
-  France        = "FPCPITOTLZGFRA",
-  Italy         = "FPCPITOTLZGITA",
-  Mexico        = "FPCPITOTLZGMEX",
-  `South Korea` = "FPCPITOTLZGKOR"
-)
 
 
-inflation_long <- inflation_ids |>
-  imap_dfr(function(id, country) {
-    get_fred(id) |>
-      select(date, value) |>
-      mutate(
-        country   = country,
-        inflation = value
-      ) |>
-      select(date, country, inflation)
-  })
-
-
-inflation_long %>%
-  head(10) %>%
-  kable(caption = "Sample of Inflation Data by Country and Date")
-
-# Plot
-inflation_long |>
-  ggplot(aes(x = date, y = inflation, color = country)) +
-    geom_line(size = 1) +
-    labs(
-      title    = "Annual Consumer-Price Inflation",
-      subtitle = "Inflation, consumer prices (annual % change) for selected economies",
-      x        = NULL,
-      y        = "Inflation Rate (%)",
-      color    = NULL
-    ) +
-    theme_minimal() +
-    theme(
-      plot.title    = element_text(size = 16, face = "bold"),
-      plot.subtitle = element_text(size = 12),
-      legend.position = "bottom"
-    )
-
+ggplot(inflation_heatmap, aes(x = factor(year), y = fct_reorder(country, -inflation), fill = inflation)) +
+  geom_tile(color = "white", size = 0.4) +
+  scale_fill_viridis_c(option = "magma", name = "Inflation Rate (%)") +
+  scale_x_discrete(
+    breaks = as.character(seq(min(inflation_heatmap$year, na.rm = TRUE),
+                             max(inflation_heatmap$year, na.rm = TRUE),
+                             by = 5))
+  ) +
+  labs(
+    title = "Inflation Heatmap (Yearly Avg, by Country)",
+    subtitle = "Darker = Higher Inflation Rate",
+    x = "Year",
+    y = NULL
+  ) +
+  theme_minimal(base_size = 13) +
+  theme(
+    legend.position = "right",
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 ```
 Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets.
 
@@ -328,28 +314,6 @@ kable(
 #| message: false
 #| warning: false
 
-# Data setup, no output!
-# 1) Provenance (no need to print these in output)
-# series_ids
-# inflation_ids
-
-# 2) Dataset dimensions (remove or comment out if you don't want to show)
-# cat("GDP data:    ", dim(gdp_pc_long)[1], "rows and", dim(gdp_pc_long)[2], "columns\n")
-# cat("Inflation data:", dim(inflation_long)[1], "rows and", dim(inflation_long)[2], "columns\n")
-
-# 3) Country coverage
-# cat("Countries in GDP data:    ", paste(sort(unique(gdp_pc_long$country)), collapse=", "), "\n\n")
-# cat("Countries in Inflation data:", paste(sort(unique(inflation_long$country)), collapse=", "), "\n\n")
-
-# 4) Structure of each data frame
-# str(gdp_pc_long)
-# str(inflation_long)
-
-# 5) Head & tail of the time series
-# head(gdp_pc_long)
-# tail(gdp_pc_long)
-# head(inflation_long)
-# tail(inflation_long)
 
 # 6) Observations per country & date range
 gdp_pc_long %>%
@@ -362,25 +326,59 @@ gdp_pc_long %>%
   ) %>%
   arrange(country) -> gdp_coverage
 
-# Only print the table you want:
-library(knitr)
-kable(gdp_coverage, caption = "GDP Data Coverage by Country")
 
-inflation_long %>%
-  group_by(country) %>%
-  summarize(
-    n_obs      = n(),
-    start_date = min(date),
-    end_date   = max(date),
-    .groups    = "drop"
-  ) %>%
-  arrange(country) -> infl_coverage
 
-kable(infl_coverage, caption = "Inflation Data Coverage by Country")
+# Assuming your `infl_coverage` table is already in your environment
+
+ggplot(infl_coverage, aes(y = reorder(country, start_date))) +
+  geom_segment(aes(x = start_date, xend = end_date, yend = country),
+               size = 4, color = "#fc8d62") +
+  geom_point(aes(x = start_date), color = "#66c2a5", size = 2) +
+  geom_point(aes(x = end_date), color = "#8da0cb", size = 2) +
+  geom_text(aes(x = end_date, label = n_obs), 
+            vjust = -0.7, hjust = 1, size = 3, fontface = "bold") +
+  labs(
+    title = "Inflation Data Coverage by Country",
+    subtitle = "Bar = full time coverage; Numbers = Observation count",
+    x = "Year", y = NULL
+  ) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%Y") +
+  theme_minimal() +
+  theme(
+    plot.title    = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text.y   = element_text(face = "bold"),
+    axis.title.x  = element_text(face = "bold")
+  )
+
 ```
+For inflation data, 9 of 10 countries have their data beginning in the 1960s. With the exception of China that began in the mid 1990s.
+
+```{r}
+ggplot(gdp_coverage, aes(y = reorder(country, start_date))) +
+  geom_segment(aes(x = start_date, xend = end_date, yend = country),
+               size = 4, color = "#a1d99b") +
+  geom_point(aes(x = start_date), color = "#2b8cbe", size = 2) +
+  geom_point(aes(x = end_date), color = "#de2d26", size = 2) +
+  geom_text(aes(x = end_date, label = n_obs), 
+            vjust = -0.7, hjust = 1, size = 3, fontface = "bold") +
+  labs(
+    title = "GDP per Capita Data Coverage by Country",
+    subtitle = "Bar = full time coverage; Numbers = Observation count",
+    x = "Year", y = NULL
+  ) +
+  scale_x_date(date_breaks = "10 years", date_labels = "%Y") +
+  theme_minimal() +
+  theme(
+    plot.title    = element_text(size = 15, face = "bold"),
+    plot.subtitle = element_text(size = 11),
+    axis.text.y   = element_text(face = "bold"),
+    axis.title.x  = element_text(face = "bold")
+  )
 
 
-
+```
+Unlike the inflation data, our GDP per capita coverage extends all the way back to the 1960s for nearly every country. However, for the U.S., FRED reports GDP per capita on a quarterly basis instead of annually. To maintain consistency with the other countries, we converted the U.S. data to annual values by applying an annualization calculation.
 
 # Analysis
 
