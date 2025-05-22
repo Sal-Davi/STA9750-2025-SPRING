@@ -183,6 +183,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li><p>To what extent can reallocating between developed and emerging market equities, based on GDP per capita and inflation trends, shield a portfolio from losses during economic downturns?</p></li>
 <li><p>How does including equities from resource-rich countries (e.g., China, South Korea, Canada) influence portfolio volatility and risk-adjusted returns, and does it offer a meaningful benefit?</p></li>
 </ol>
+<p>The motivation of these two mini-questions were drived from the following literature;</p>
+<p><strong>1. Dan Moisand &amp; Mike Salmon.</strong></p>
+<p>If rebalancing does not occur during bear markets, clients will experience lower portfolio balances.</p>
+<p>The most impactful rebalancing strategy was a 60 stock /40 bonds split.</p>
+<p>In this project we will dive into rebalancing emerged/developed markets</p>
+<p><strong>2. Paper by Youmanli Ouoba, published in 2016.</strong></p>
+<p>Studied economic performance of resource-rich countries.</p>
+<p>Economic growth is achievable by having abundance of resources.</p>
+<p>However, resource funds can turn sour if fiscal policy of these nations is not ethically responsible.</p>
 <section id="importing-data" class="level2">
 <h2 class="anchored" data-anchor-id="importing-data">Importing data</h2>
 <div class="cell">
@@ -808,11 +817,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-178"><a href="#cb10-178" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(metrics)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 2 × 4
-  strategy         ann_ret ann_vol    sharpe
-  &lt;chr&gt;              &lt;dbl&gt;   &lt;dbl&gt;     &lt;dbl&gt;
-1 Calendar75_25 -0.00899     0.185 -0.0485  
-2 Tactical       0.0000432   0.192  0.000225</code></pre>
+<pre><code># A tibble: 0 × 4
+# ℹ 4 variables: strategy &lt;chr&gt;, ann_ret &lt;dbl&gt;, ann_vol &lt;dbl&gt;, sharpe &lt;dbl&gt;</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -830,20 +836,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(annual_returns)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 32 × 3
-   strategy       year ann_return
-   &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;
- 1 Calendar75_25  2008  -0.0839  
- 2 Calendar75_25  2009  -0.123   
- 3 Calendar75_25  2010   0.0165  
- 4 Calendar75_25  2011   0.0295  
- 5 Calendar75_25  2012   0.118   
- 6 Calendar75_25  2013   0.0198  
- 7 Calendar75_25  2014  -0.00187 
- 8 Calendar75_25  2015   0.0478  
- 9 Calendar75_25  2016   0.000612
-10 Calendar75_25  2017   0.0877  
-# ℹ 22 more rows</code></pre>
+<pre><code># A tibble: 0 × 3
+# ℹ 3 variables: strategy &lt;chr&gt;, year &lt;dbl&gt;, ann_return &lt;dbl&gt;</code></pre>
 </div>
 <details class="code-fold">
 <summary>Show the code</summary>
@@ -907,20 +901,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(cum_by_year)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 32 × 3
-   strategy       year cum_return
-   &lt;chr&gt;         &lt;dbl&gt;      &lt;dbl&gt;
- 1 Calendar75_25  2008   -0.0839 
- 2 Calendar75_25  2009   -0.197  
- 3 Calendar75_25  2010   -0.183  
- 4 Calendar75_25  2011   -0.159  
- 5 Calendar75_25  2012   -0.0599 
- 6 Calendar75_25  2013   -0.0413 
- 7 Calendar75_25  2014   -0.0431 
- 8 Calendar75_25  2015    0.00263
- 9 Calendar75_25  2016    0.00325
-10 Calendar75_25  2017    0.0913 
-# ℹ 22 more rows</code></pre>
+<pre><code># A tibble: 0 × 3
+# ℹ 3 variables: strategy &lt;chr&gt;, year &lt;dbl&gt;, cum_return &lt;dbl&gt;</code></pre>
 </div>
 </div>
 <div class="cell">
@@ -1118,17 +1100,17 @@ We measured cumulative return, annualized return, and annualized volatility for 
 <span id="cb19-61"><a href="#cb19-61" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(metrics_filtered, <span class="at">digits =</span> <span class="dv">3</span>, <span class="at">caption =</span> <span class="st">"Annualized Performance Metrics: Equity vs. Resource ETFs (4 Countries)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </details>
 <div class="cell-output-display">
-<table class="caption-top table table-sm table-striped small">
+<table class="caption-top">
 <caption>Annualized Performance Metrics: Equity vs.&nbsp;Resource ETFs (4 Countries)</caption>
 <colgroup>
-<col style="width: 14%">
-<col style="width: 4%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 14%">
-<col style="width: 14%">
-<col style="width: 14%">
+<col style="width: 10%">
+<col style="width: 3%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 13%">
+<col style="width: 15%">
+<col style="width: 15%">
+<col style="width: 15%">
 </colgroup>
 <thead>
 <tr class="header">
@@ -1143,46 +1125,6 @@ We measured cumulative return, annualized return, and annualized volatility for 
 </tr>
 </thead>
 <tbody>
-<tr class="odd">
-<td style="text-align: left;">Japan</td>
-<td style="text-align: right;">174</td>
-<td style="text-align: right;">1.241</td>
-<td style="text-align: right;">0.057</td>
-<td style="text-align: right;">0.141</td>
-<td style="text-align: right;">-0.762</td>
-<td style="text-align: right;">-0.094</td>
-<td style="text-align: right;">0.341</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Canada</td>
-<td style="text-align: right;">241</td>
-<td style="text-align: right;">2.737</td>
-<td style="text-align: right;">0.068</td>
-<td style="text-align: right;">0.199</td>
-<td style="text-align: right;">0.856</td>
-<td style="text-align: right;">0.031</td>
-<td style="text-align: right;">0.285</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">China</td>
-<td style="text-align: right;">167</td>
-<td style="text-align: right;">-0.225</td>
-<td style="text-align: right;">-0.018</td>
-<td style="text-align: right;">0.237</td>
-<td style="text-align: right;">-0.292</td>
-<td style="text-align: right;">-0.025</td>
-<td style="text-align: right;">0.285</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">South Korea</td>
-<td style="text-align: right;">105</td>
-<td style="text-align: right;">0.239</td>
-<td style="text-align: right;">0.025</td>
-<td style="text-align: right;">0.230</td>
-<td style="text-align: right;">1.753</td>
-<td style="text-align: right;">0.123</td>
-<td style="text-align: right;">0.163</td>
-</tr>
 </tbody>
 </table>
 </div>

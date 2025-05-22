@@ -36,6 +36,23 @@ The two questions that I was responsible for are;
 2. How does including equities from resource-rich countries (e.g., China, South Korea, Canada) influence portfolio volatility and risk-adjusted returns, and does it offer a meaningful benefit?
 
 
+The motivation of these two mini-questions were drived from the following literature;
+
+**1.  Dan Moisand & Mike Salmon.**
+
+If rebalancing does not occur during bear markets, clients will experience lower portfolio balances.
+
+The most impactful rebalancing strategy was a 60 stock /40 bonds split.
+
+In this project we will dive into rebalancing emerged/developed markets
+
+**2. Paper by Youmanli Ouoba, published in 2016.**
+
+Studied economic performance of resource-rich countries.
+
+Economic growth is achievable by having abundance of resources.
+
+However, resource funds can turn sour if fiscal policy of these nations is not ethically responsible.
 
 ## Importing data
 
