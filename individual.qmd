@@ -200,6 +200,30 @@ library(tidyr)
 library(forcats)
 library(viridis) 
 
+inflation_ids <- c(
+  USA           = "FPCPITOTLZGUSA",
+  China         = "FPCPITOTLZGCHN",
+  Germany       = "FPCPITOTLZGDEU",
+  India         = "FPCPITOTLZGIND",
+  Japan         = "FPCPITOTLZGJPN",
+  UK            = "FPCPITOTLZGGBR",
+  France        = "FPCPITOTLZGFRA",
+  Italy         = "FPCPITOTLZGITA",
+  Mexico        = "FPCPITOTLZGMEX",
+  `South Korea` = "FPCPITOTLZGKOR"
+)
+
+inflation_long <- inflation_ids |>
+  imap_dfr(function(id, country) {
+    get_fred(id) |>
+      select(date, value) |>
+      mutate(
+        country   = country,
+        inflation = value
+      ) |>
+      select(date, country, inflation)
+  })
+
 # Prepare data: Yearly average inflation for each country
 inflation_heatmap <- inflation_long %>%
   mutate(year = year(date)) %>%
@@ -326,6 +350,15 @@ gdp_pc_long %>%
   ) %>%
   arrange(country) -> gdp_coverage
 
+infl_coverage <- inflation_long %>%
+  group_by(country) %>%
+  summarize(
+    n_obs      = n(),
+    start_date = min(date),
+    end_date   = max(date),
+    .groups    = "drop"
+  ) %>%
+  arrange(country)
 
 
 # Assuming your `infl_coverage` table is already in your environment
