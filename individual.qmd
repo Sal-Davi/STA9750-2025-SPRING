@@ -326,7 +326,7 @@ ggplot(etf_prices_long_indexed, aes(x = date, y = indexed_price, fill = country)
 
 
 ```
-
+Here, the have loaded and mapped the ETFs for Canada, Japan, South Korea & the USA. The first four tickers will be particularly useful for our resource-rich nation analysis.
 
 ```{r}
 # Pivot to wide form so each country is a column
@@ -638,7 +638,7 @@ metrics <- df |>
   ) |>
   select(strategy, ann_ret, ann_vol, sharpe)
 
-print(metrics)
+
 
 ```
 
@@ -653,7 +653,6 @@ annual_returns <- df %>%
     .groups = "drop"
   )
 
-print(annual_returns)
 
 ggplot(annual_returns, aes(x = factor(year), y = ann_return, fill = strategy)) +
   geom_col(
@@ -706,12 +705,13 @@ cum_by_year <- df %>%
     .groups    = "drop"
   )
 
-print(cum_by_year)
+#print(cum_by_year)
 
 
 
 
 ```
+
 ```{r}
 library(ggplot2)
 library(dplyr)
