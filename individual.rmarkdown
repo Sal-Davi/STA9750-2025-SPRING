@@ -16,6 +16,8 @@ execute:
 ---
 
 
+
+
 **Note:**
 Due to persistent API connection issues with AlphaVantage, some of the graphs shown below were generated using hard-coded results rather than plotting directly from the code in the analysis. The data used in these graphs matches the results produced by the code, but because of frequent disconnections, we were unable to plot them live. Instead, we used the final output from the code to create the visualizations.
 
@@ -41,6 +43,8 @@ The two questions that I was responsible for are;
 
 
 ## Importing data
+
+
 
 ```{r}
 
@@ -117,7 +121,11 @@ GET_AV <- function(ticker){
 }
 ```
 
+
+
 ## GDP Per Capita
+
+
 
 ```{r}
 library(dplyr)
@@ -189,9 +197,13 @@ ggplot(gdp_rank, aes(x = date, y = rank, color = country)) +
 
 ```
 
+
+
 Above, we present the GDP per capita data for China, Germany, Italy, Mexico, the UK, France, India, Japan, South Korea, and the USA. These countries represent some of the world’s largest economies by GDP, making them essential to our analysis as we explore investment opportunities in international equities linked to these markets.
 
 ## Inflation
+
+
 ```{r}
 library(lubridate)
 library(ggplot2)
@@ -229,10 +241,14 @@ ggplot(inflation_heatmap, aes(x = factor(year), y = fct_reorder(country, -inflat
     axis.text.x = element_text(angle = 45, hjust = 1)
   )
 ```
+
+
 Above, we load the inflation data for the same set of leading global economies. Incorporating inflation figures from these major markets is crucial for our analysis, as inflation trends in these countries can significantly influence the performance of broad-based international ETFs. Their economic size ensures that fluctuations in their inflation rates have a broad impact on global equity markets.
 
 
 ## ETFs for each of the nations
+
+
 ```{r}
 library(ggplot2)
 
@@ -283,7 +299,6 @@ etf_prices_long |>
     )
 
 ```
-
 
 ```{r}
 # Pivot to wide form so each country is a column
@@ -352,7 +367,11 @@ ggplot(infl_coverage, aes(y = reorder(country, start_date))) +
   )
 
 ```
+
+
 For inflation data, 9 of 10 countries have their data beginning in the 1960s. With the exception of China that began in the mid 1990s.
+
+
 
 ```{r}
 ggplot(gdp_coverage, aes(y = reorder(country, start_date))) +
@@ -378,9 +397,13 @@ ggplot(gdp_coverage, aes(y = reorder(country, start_date))) +
 
 
 ```
+
+
 Unlike the inflation data, our GDP per capita coverage extends all the way back to the 1960s for nearly every country. However, for the U.S., FRED reports GDP per capita on a quarterly basis instead of annually. To maintain consistency with the other countries, we converted the U.S. data to annual values by applying an annualization calculation.
 
 # Analysis
+
+
 
 ```{r}
 library(purrr)
@@ -405,6 +428,8 @@ gdp_growth <- gdp_pc_wide |>
 ```
 
 
+
+
 # QUESTION 2- Rebalancing Equities
 For this mini-question, we set out to determine whether a traditional 75/25 split between developed and emerging market equities is more beneficial than a signal-based rebalancing approach.
 
@@ -415,6 +440,8 @@ We began by analyzing a simple portfolio: 75% developed market exposure, 25% eme
 For the signal-based strategy, we introduced dynamic rebalancing triggers. Specifically, if average GDP growth for a group was negative or inflation exceeded 4%, we treated this as a signal for economic stress. In such cases, we halved our allocation to emerging markets and reallocated the difference to developed markets—always maintaining full equity exposure and never shifting to cash.
 
  
+
+
 
 ```{r}
 
@@ -677,6 +704,7 @@ print(cum_by_year)
 
 
 ```
+
 ```{r}
 library(ggplot2)
 library(dplyr)
@@ -759,6 +787,8 @@ ggplot(cum_by_year, aes(x = factor(year), y = cum_return, fill = strategy)) +
 
 
 ```
+
+
 **Key Findings**
 
 - The **constant 75/25 split strategy** lost about 0.9% per year on average over the last 15 years.
@@ -766,6 +796,8 @@ ggplot(cum_by_year, aes(x = factor(year), y = cum_return, fill = strategy)) +
 
 **Takeaway:**  
 While rebalancing using GDP and inflation signals helped avoid some losses during downturns, neither strategy delivered strong growth compared to benchmarks like SPY or broader international ETFs that include the U.S. In recent years, simply shifting between developed and emerging markets based on these macro signals did not offer a significant performance edge.
+
+
 
 
 
@@ -795,6 +827,8 @@ infl_summary <- inflation_long %>%
 
 ```
 
+
+
 # QUESTION 3 - Investing In Resource-Rich Markets
 
 In this section, we investigate whether investing in resource-based ETFs delivers superior returns compared to broad market ETFs for selected resource-rich nations.
@@ -806,6 +840,8 @@ We focused on four countries—Canada, China, Japan, and South Korea—where we 
 
 - **Volatility and Metrics:**  
   We measured cumulative return, annualized return, and annualized volatility for each ETF. Resource-based ETFs tend to exhibit higher volatility, especially in Japan, Canada, and China, reflecting the cyclical and commodity-driven nature of these sectors.
+
+
 
 
 ```{r}
@@ -874,9 +910,6 @@ knitr::kable(metrics_filtered, digits = 3, caption = "Annualized Performance Met
 
 ```
 
-
-
-
 ```{r}
 
 
@@ -905,7 +938,6 @@ ggplot(metrics_long, aes(x = country, y = annualized_return, fill = type)) +
 
 
 ```
-
 
 ```{r}
 
@@ -953,6 +985,8 @@ ggplot() +
 ```
 
 
+
+
 - **Key Findings:**  
   - *South Korea’s resource ETF (KRMA)* stands out, with an annualized return of **12.4%**, compared to just **2.4%** for the country’s broad market ETF.
   - In contrast, resource-focused ETFs in China and Japan produced flatter returns, trailing their broad market counterparts.
@@ -963,11 +997,12 @@ ggplot() +
 - We had to limit to 4 nations due to issues with API, need more countries for more accurate analysis.
 
 
+
+
 ```{r}
 
 
 ```
-
 
 ```{r}
 
